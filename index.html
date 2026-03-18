@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>กองบูรณาการคุณภาพน้ำ ฝ่ายคุณภาพน้ำ</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700;800&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:#0b0f1a; --surface:#131929; --surface2:#1a2236; --border:#1e2d45;
+    --text:#e2e8f0; --muted:#64748b; --accent:#6366f1; --accent2:#8b5cf6;
+    --green:#10b981; --blue:#3b82f6; --amber:#f59e0b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Sarabun',sans-serif;min-height:100vh;}
+
+  /* HEADER */
+  .header{background:linear-gradient(135deg,var(--surface),#10172a);border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+  .logo{display:flex;align-items:center;gap:14px;padding:18px 0;}
+  .logo-icon{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:20px;}
+  .logo-title{font-size:18px;font-weight:800;letter-spacing:-0.3px;}
+  .logo-date{font-size:12px;color:var(--muted);}
+  .nav{display:flex;gap:6px;}
+  .nav-btn{padding:8px 20px;border-radius:8px;border:none;cursor:pointer;background:transparent;color:var(--muted);font-family:'Sarabun',sans-serif;font-size:14px;transition:all 0.2s;}
+  .nav-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-weight:600;}
+
+  /* SYNC INDICATOR */
+  .sync-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:6px 32px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);}
+  .sync-dot{width:7px;height:7px;border-radius:50%;background:#475569;flex-shrink:0;transition:all 0.3s;}
+  .sync-dot.connected{background:var(--green);box-shadow:0 0 6px var(--green);}
+  .sync-dot.error{background:#ef4444;}
+
+  /* LAYOUT */
+  .main{padding:24px 32px;max-width:1140px;margin:0 auto;}
+  .tab{display:none;} .tab.active{display:block;}
+
+  /* CARDS */
+  .card{background:var(--surface);border-radius:16px;padding:24px;border:1px solid var(--border);}
+  .card-title{font-size:15px;font-weight:700;margin-bottom:18px;}
+
+  /* STATS */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+  .stat-card{background:var(--surface);border-radius:14px;padding:22px;border:1px solid var(--border);position:relative;overflow:hidden;}
+  .stat-icon{position:absolute;top:-10px;right:-6px;font-size:60px;opacity:0.07;}
+  .stat-value{font-size:30px;font-weight:800;}
+  .stat-label{font-size:12px;color:var(--muted);margin-top:4px;}
+
+  /* MEETING */
+  .rooms-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+  .room-card{background:var(--surface2);border-radius:14px;padding:20px;border:1px solid var(--border);transition:all 0.2s;}
+  .room-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+  .join-btn{display:block;width:100%;padding:11px 0;border-radius:10px;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;text-align:center;text-decoration:none;transition:all 0.2s;}
+  .join-zoom{background:linear-gradient(135deg,#1d4ed8,#2563eb);color:#fff;box-shadow:0 4px 14px rgba(37,99,235,0.35);}
+  .join-meet{background:linear-gradient(135deg,#065f46,#059669);color:#fff;box-shadow:0 4px 14px rgba(5,150,105,0.35);}
+  .join-btn:hover{filter:brightness(1.15);transform:translateY(-1px);}
+
+  /* ATTENDANCE */
+  .att-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;}
+  .att-card{background:#0b0f1a;border-radius:12px;padding:14px 16px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+  .att-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+  .att-name{font-size:13px;font-weight:600;}
+  .att-time{font-size:11px;color:var(--muted);margin-top:2px;}
+
+  /* PROGRESS */
+  .progress-row{display:flex;align-items:center;gap:16px;padding:14px 0;border-bottom:1px solid #111c2d;}
+  .avatar{width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+  .pbar-wrap{background:#0b0f1a;border-radius:4px;height:6px;overflow:hidden;}
+  .pbar{height:100%;border-radius:4px;transition:width 0.5s;}
+  .badge{padding:3px 10px;border-radius:20px;font-size:11px;}
+
+  /* CLOCK */
+  .clock-display{text-align:center;padding:28px 0 20px;}
+  .clock-time{font-family:'IBM Plex Mono',monospace;font-size:56px;font-weight:600;letter-spacing:4px;background:linear-gradient(135deg,#a78bfa,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .clock-date{font-size:13px;color:var(--muted);margin-top:6px;}
+
+  /* CHECK IN/OUT */
+  .time-display{background:#0b0f1a;border-radius:14px;padding:16px 20px;margin:16px 0;display:flex;justify-content:space-around;align-items:center;}
+  .time-box{text-align:center;}
+  .time-label{font-size:11px;color:var(--muted);letter-spacing:1px;margin-bottom:4px;}
+  .time-value{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600;letter-spacing:2px;}
+  .checkin-buttons{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:20px;}
+  .ci-btn{padding:20px 0;border-radius:16px;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:17px;font-weight:800;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .ci-btn:disabled{background:#111c2d!important;color:#2d3f5a!important;cursor:not-allowed;box-shadow:none!important;}
+  .ci-btn .ci-icon{font-size:28px;}
+
+  /* FEEDBACK */
+  .feedback{padding:13px 16px;border-radius:12px;font-size:14px;font-weight:600;text-align:center;animation:popIn 0.3s ease;display:none;margin:12px 0;}
+  @keyframes popIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+
+  /* FORM */
+  .form-group{margin-bottom:18px;}
+  .form-label{font-size:13px;color:var(--muted);display:block;margin-bottom:8px;}
+  .form-select,.form-textarea{width:100%;padding:12px 16px;border-radius:10px;background:#0b0f1a;border:1px solid var(--border);color:var(--text);font-family:'Sarabun',sans-serif;font-size:14px;}
+  .form-textarea{resize:vertical;}
+  .tags{display:flex;flex-wrap:wrap;gap:8px;}
+  .tag{padding:7px 15px;border-radius:20px;border:none;cursor:pointer;background:var(--surface2);color:var(--muted);font-family:'Sarabun',sans-serif;font-size:13px;transition:all 0.2s;}
+  .tag.active{background:var(--accent);color:#fff;}
+  .status-btns{display:flex;gap:8px;}
+  .status-btn{flex:1;padding:10px;border-radius:10px;border:none;cursor:pointer;font-family:'Sarabun',sans-serif;font-size:13px;transition:all 0.2s;background:var(--surface2);color:var(--muted);}
+  input[type=range]{width:100%;accent-color:var(--accent);}
+  .submit-btn{width:100%;padding:14px;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:700;transition:all 0.2s;margin-top:8px;}
+  .submit-btn:disabled{background:var(--surface2);color:#334155;cursor:not-allowed;}
+
+  /* REPORT CARDS */
+  .report-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+  .report-card{background:var(--surface);border-radius:16px;padding:20px;border:1px solid var(--border);}
+
+  /* FILTER CHIPS */
+  .filter-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+  .chip{padding:6px 14px;border-radius:20px;border:none;cursor:pointer;background:var(--surface2);color:var(--muted);font-family:'Sarabun',sans-serif;font-size:13px;transition:all 0.2s;}
+  .chip.active{background:var(--accent);color:#fff;}
+
+  .att-info-box{background:#0b0f1a;border-radius:10px;padding:10px 16px;font-size:13px;color:var(--muted);margin-bottom:16px;display:none;}
+  .success-alert{background:#064e3b;border:1px solid var(--green);border-radius:12px;padding:14px;color:#6ee7b7;font-size:14px;text-align:center;margin-bottom:18px;display:none;animation:popIn 0.3s ease;}
+
+  /* LOADING */
+  .loading-overlay{position:fixed;inset:0;background:#0b0f1a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity 0.4s;}
+  .loading-overlay.hidden{opacity:0;pointer-events:none;}
+  .loading-spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:16px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{color:var(--muted);font-size:14px;}
+
+  /* BOTTOM NAV */
+  .bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:200;background:#0f172a;border-top:1px solid var(--border);padding:8px 0 env(safe-area-inset-bottom,8px);}
+  .bottom-nav-inner{display:flex;justify-content:space-around;}
+  .bnav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:transparent;color:var(--muted);font-family:'Sarabun',sans-serif;font-size:11px;font-weight:600;padding:6px 16px;border-radius:12px;cursor:pointer;transition:all 0.2s;min-width:60px;}
+  .bnav-btn .bnav-icon{font-size:20px;}
+  .bnav-btn.active{color:var(--accent);}
+
+  @media(max-width:640px){
+    .header{padding:0 16px;} .nav{display:none;}
+    .logo-title{font-size:14px;} .logo-date{font-size:10px;}
+    .logo-icon{width:34px;height:34px;font-size:16px;border-radius:9px;} .logo{gap:10px;padding:14px 0;}
+    .sync-bar{padding:5px 16px;}
+    .bottom-nav{display:block;}
+    .main{padding:14px 14px 80px;}
+    .stats{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+    .stat-card{padding:16px 14px;border-radius:12px;} .stat-value{font-size:24px;} .stat-label{font-size:11px;}
+    .att-grid{grid-template-columns:1fr;gap:8px;}
+    .clock-time{font-size:36px;letter-spacing:2px;} .clock-display{padding:16px 0 12px;}
+    .time-display{flex-wrap:wrap;gap:10px;padding:14px;} .time-value{font-size:20px;} .time-label{font-size:10px;}
+    .ci-btn{padding:16px 0;font-size:15px;border-radius:14px;} .ci-btn .ci-icon{font-size:24px;}
+    .card{padding:16px;border-radius:14px;} .card-title{font-size:14px;margin-bottom:14px;}
+    .report-grid{grid-template-columns:1fr;gap:12px;} .report-card{padding:16px;}
+    .status-btn{min-width:calc(50% - 4px);padding:9px;}
+    .form-select,.form-textarea{font-size:16px;}
+    .tag{font-size:12px;padding:6px 12px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">กำลังเชื่อมต่อ Firebase...</div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">💧</div>
+    <div>
+      <div class="logo-title">กองบูรณาการคุณภาพน้ำ</div>
+      <div class="logo-date">ฝ่ายคุณภาพน้ำ &nbsp;|&nbsp; <span id="headerDate"></span></div>
+    </div>
+  </div>
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showTab('dashboard')">Dashboard</button>
+    <button class="nav-btn" onclick="showTab('meeting')">ห้องประชุม</button>
+    <button class="nav-btn" onclick="showTab('report')">รายงาน</button>
+    <button class="nav-btn" onclick="showTab('form')">บันทึก</button>
+  </nav>
+</div>
+
+<!-- SYNC BAR -->
+<div class="sync-bar">
+  <div class="sync-dot" id="sync-dot"></div>
+  <span id="sync-status">กำลังเชื่อมต่อ...</span>
+</div>
+
+<div class="main">
+
+  <!-- DASHBOARD -->
+  <div class="tab active" id="tab-dashboard">
+    <div class="stats">
+      <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value" style="color:#6366f1" id="stat-wfh">0</div><div class="stat-label">พนักงาน WFH</div></div>
+      <div class="stat-card"><div class="stat-icon">🟢</div><div class="stat-value" style="color:#10b981" id="stat-online">0</div><div class="stat-label">กำลังทำงาน</div></div>
+      <div class="stat-card"><div class="stat-icon">📈</div><div class="stat-value" style="color:#a78bfa" id="stat-progress">0%</div><div class="stat-label">เฉลี่ย Progress</div></div>
+      <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-value" style="color:#3b82f6" id="stat-done">0</div><div class="stat-label">เสร็จสิ้น</div></div>
+    </div>
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-title">🕐 สถานะเข้า-ออกงานวันนี้</div>
+      <div class="att-grid" id="att-overview"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">📊 ความคืบหน้าของทีม</div>
+      <div class="filter-chips" id="dept-chips"></div>
+      <div id="progress-list"><div style="text-align:center;color:var(--muted);padding:40px">ยังไม่มีรายงานวันนี้</div></div>
+    </div>
+  </div>
+
+  <!-- MEETING -->
+  <div class="tab" id="tab-meeting">
+    <div style="margin-bottom:20px">
+      <div style="font-size:22px;font-weight:800;margin-bottom:6px">📹 ห้องประชุมออนไลน์</div>
+      <div style="color:var(--muted);font-size:14px">กดปุ่มเข้าร่วมเพื่อเข้าห้องประชุมได้ทันที</div>
+    </div>
+    <div class="rooms-grid" id="rooms-container"></div>
+    <div class="card" style="margin-top:24px">
+      <div class="card-title">🔗 เข้าร่วมด้วยลิงค์</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <input id="custom-link" type="url" placeholder="วางลิงค์ประชุมที่นี่..." style="flex:1;padding:12px 16px;border-radius:10px;background:#0b0f1a;border:1px solid var(--border);color:var(--text);font-family:'Sarabun',sans-serif;font-size:14px;min-width:200px"/>
+        <button onclick="joinCustom()" style="padding:12px 24px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;white-space:nowrap">เข้าร่วมเลย →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORT -->
+  <div class="tab" id="tab-report">
+    <div class="report-grid" id="report-grid">
+      <div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:60px">ยังไม่มีรายงาน — ไปที่แท็บ "บันทึก"</div>
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <div class="tab" id="tab-form">
+    <div style="max-width:620px;margin:0 auto">
+
+      <!-- CHECK IN/OUT -->
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-title">⏱ บันทึกเวลาเข้า-ออกงาน</div>
+        <div class="clock-display">
+          <div class="clock-time" id="live-clock">00:00:00</div>
+          <div class="clock-date" id="live-date"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">เลือกพนักงาน</label>
+          <select class="form-select" id="ci-emp" onchange="updateCIDisplay()">
+            <option value="">-- เลือกพนักงาน --</option>
+          </select>
+        </div>
+        <div class="time-display">
+          <div class="time-box">
+            <div class="time-label">CHECK IN</div>
+            <div class="time-value" style="color:#2d3f5a" id="ci-display">--:--</div>
+          </div>
+          <div style="font-size:20px;color:var(--border)">⟶</div>
+          <div class="time-box">
+            <div class="time-label">CHECK OUT</div>
+            <div class="time-value" style="color:#2d3f5a" id="co-display">--:--</div>
+          </div>
+          <div class="time-box">
+            <div class="time-label">สถานะ</div>
+            <div style="font-size:13px;font-weight:600;color:var(--muted)" id="ci-status">ยังไม่เข้างาน</div>
+          </div>
+        </div>
+        <div class="feedback" id="ci-feedback"></div>
+        <div class="checkin-buttons">
+          <button class="ci-btn" id="btn-checkin" onclick="doCheckIn()" disabled style="background:linear-gradient(135deg,#059669,#10b981);color:#fff;box-shadow:0 6px 24px rgba(16,185,129,0.4)">
+            <span class="ci-icon">🟢</span>CHECK IN
+          </button>
+          <button class="ci-btn" id="btn-checkout" onclick="doCheckOut()" disabled style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;box-shadow:0 6px 24px rgba(59,130,246,0.4)">
+            <span class="ci-icon">🔵</span>CHECK OUT
+          </button>
+        </div>
+      </div>
+
+      <!-- REPORT FORM -->
+      <div class="card">
+        <div class="card-title">📋 บันทึกสรุปงานประจำวัน</div>
+        <div class="success-alert" id="success-alert">✅ บันทึกรายงานเรียบร้อยแล้ว!</div>
+        <div class="form-group">
+          <label class="form-label">พนักงาน *</label>
+          <select class="form-select" id="rpt-emp" onchange="updateAttInfo()">
+            <option value="">-- เลือกพนักงาน --</option>
+          </select>
+        </div>
+        <div class="att-info-box" id="att-info-box"></div>
+        <div class="form-group">
+          <label class="form-label">งานที่ทำวันนี้ * (เลือกได้หลายข้อ)</label>
+          <div class="tags" id="task-tags"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ความคืบหน้า: <span id="prog-label" style="color:#a78bfa;font-weight:700">50%</span></label>
+          <input type="range" min="0" max="100" value="50" id="prog-slider" oninput="document.getElementById('prog-label').textContent=this.value+'%'"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">สถานะ</label>
+          <div class="status-btns" id="status-btns"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">หมายเหตุ (ถ้ามี)</label>
+          <textarea class="form-textarea" id="rpt-note" rows="3" placeholder="เช่น ติดขัดเรื่อง... หรือต้องการความช่วยเหลือด้าน..."></textarea>
+        </div>
+        <button class="submit-btn" id="submit-btn" onclick="submitReport()" disabled>บันทึกรายงาน</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <button class="bnav-btn active" id="bnav-dashboard" onclick="showTab('dashboard')"><span class="bnav-icon">📊</span>Dashboard</button>
+    <button class="bnav-btn" id="bnav-meeting" onclick="showTab('meeting')"><span class="bnav-icon">📹</span>ประชุม</button>
+    <button class="bnav-btn" id="bnav-report" onclick="showTab('report')"><span class="bnav-icon">📄</span>รายงาน</button>
+    <button class="bnav-btn" id="bnav-form" onclick="showTab('form')"><span class="bnav-icon">✏️</span>บันทึก</button>
+  </div>
+</nav>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ── Firebase Config ──
+const firebaseConfig = {
+  apiKey: "AIzaSyDpXuKRRbE8P5A33jhLOupzJG_cbFxgOt0",
+  authDomain: "wfh-project-b9025.firebaseapp.com",
+  databaseURL: "https://wfh-project-b9025-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "wfh-project-b9025",
+  storageBucket: "wfh-project-b9025.firebasestorage.app",
+  messagingSenderId: "389646353075",
+  appId: "1:389646353075:web:d66ba11ff920cba480e6c6",
+  measurementId: "G-2038YXLPRK"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ── Static Data ──
+const EMPLOYEES = [
+  { id:1, name:"นายเฉลิมเกียรติ ทับทิมศรี",  dept:"กองบูรณาการคุณภาพน้ำ", avatar:"ฉก" },
+  { id:2, name:"นายพิพัฒน์ บริบาลนุกูล",    dept:"กองบูรณาการคุณภาพน้ำ", avatar:"พพ" },
+  { id:3, name:"นางสาวธิติมา แสงประภากร",   dept:"กองบูรณาการคุณภาพน้ำ", avatar:"ธต" },
+];
+const TASKS = ["ประชุมทีม","พัฒนา Feature","รีวิวโค้ด","เขียนเอกสาร","ดูแล Bug","วางแผนโปรเจกต์","ฝึกอบรม","ติดต่อลูกค้า"];
+const STATUSES = {
+  "ปกติ":   { bg:"#d1fae5", color:"#065f46" },
+  "ติดขัด": { bg:"#fef3c7", color:"#92400e" },
+  "เสร็จสิ้น":{ bg:"#dbeafe", color:"#1e3a5f" },
+};
+const MEETING_ROOM = {
+  name:"ห้องประชุมหลัก", icon:"📹",
+  participants:"ทีมทั้งหมด", schedule:"จ-ศ 09:00 น. เป็นต้นไป",
+  desc:"ห้องประชุมออนไลน์สำหรับทีม\nเลือกแพลตฟอร์มที่สะดวกแล้วกดเข้าร่วมได้เลย",
+  zoom:{ link:"https://zoom.us/j/9644848641?pwd=Oa3JsAiZTw4c3GQdb7sJybnzoebKDi.1", meetingId:"964 484 8641", passcode:"" },
+  meet:{ link:"https://meet.google.com/abc-defg-hij" },
+};
+
+// ── State (live from Firebase) ──
+let attendance = {};   // { empId: { checkIn, checkOut } }
+let reports = [];      // [ { id, employeeId, employee, ... } ]
+let selectedTasks = [];
+let currentStatus = "ปกติ";
+let activeFilter = "ทั้งหมด";
+let dbReady = false;
+
+// ── Today key ──
+const todayKey = () => new Date().toISOString().slice(0,10).replace(/-/g,"");
+
+// ─── SYNC STATUS UI ───
+function setSyncStatus(state, msg) {
+  const dot = document.getElementById("sync-dot");
+  const txt = document.getElementById("sync-status");
+  dot.className = "sync-dot" + (state==="connected"?" connected":state==="error"?" error":"");
+  txt.textContent = msg;
+}
+
+// ─── FIREBASE LISTENERS ───
+function listenFirebase() {
+  const today = todayKey();
+
+  // Attendance
+  onValue(ref(db, `attendance/${today}`), snap => {
+    attendance = snap.exists() ? snap.val() : {};
+    updateCIDisplay();
+    renderDashboard();
+  }, err => setSyncStatus("error", "เชื่อมต่อไม่ได้: "+err.message));
+
+  // Reports
+  onValue(ref(db, `reports/${today}`), snap => {
+    if (snap.exists()) {
+      const raw = snap.val();
+      reports = Object.entries(raw).map(([fbKey, v]) => ({
+        ...v,
+        fbKey,
+        employee: EMPLOYEES.find(e => e.id === v.employeeId) || { name:"?", dept:"?", avatar:"?" },
+      })).sort((a,b) => b.id - a.id);
+    } else {
+      reports = [];
+    }
+    renderDashboard();
+    renderReports();
+    setSyncStatus("connected", "ซิงค์แล้ว · อัปเดตแบบ Real-time 🔄");
+    // Hide loading
+    document.getElementById("loading").classList.add("hidden");
+    dbReady = true;
+    document.getElementById("submit-btn").disabled = false;
+  }, err => {
+    setSyncStatus("error", "เชื่อมต่อไม่ได้: "+err.message);
+    document.getElementById("loading").classList.add("hidden");
+  });
+}
+
+// ─── SAVE ATTENDANCE ───
+async function saveAttendance(empId, data) {
+  const today = todayKey();
+  await set(ref(db, `attendance/${today}/${empId}`), data);
+}
+
+// ─── SAVE REPORT ───
+async function saveReport(reportData) {
+  const today = todayKey();
+  const { employee, fbKey, ...toSave } = reportData;
+  await push(ref(db, `reports/${today}`), toSave);
+}
+
+// ─── CLOCK ───
+function updateClock() {
+  const now = new Date();
+  document.getElementById("live-clock").textContent = now.toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+  const d = now.toLocaleDateString("th-TH",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+  document.getElementById("live-date").textContent = d;
+  document.getElementById("headerDate").textContent = d;
+}
+setInterval(updateClock, 1000); updateClock();
+
+// ─── TABS ───
+window.showTab = function(name) {
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".bnav-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("tab-"+name).classList.add("active");
+  ["dashboard","meeting","report","form"].forEach((t,i)=>{
+    if(t===name) document.querySelectorAll(".nav-btn")[i].classList.add("active");
+  });
+  const bnav = document.getElementById("bnav-"+name);
+  if(bnav) bnav.classList.add("active");
+  if(name==="dashboard") renderDashboard();
+  if(name==="report") renderReports();
+};
+
+// ─── INIT UI ───
+function initUI() {
+  // Employee dropdowns
+  [document.getElementById("ci-emp"), document.getElementById("rpt-emp")].forEach(sel=>{
+    EMPLOYEES.forEach(e=>{
+      const o=document.createElement("option");
+      o.value=e.id; o.textContent=e.name;
+      sel.appendChild(o);
+    });
+  });
+
+  // Task tags
+  TASKS.forEach(t=>{
+    const btn=document.createElement("button");
+    btn.className="tag"; btn.textContent=t;
+    btn.onclick=()=>toggleTask(t,btn);
+    document.getElementById("task-tags").appendChild(btn);
+  });
+
+  // Status buttons
+  Object.entries(STATUSES).forEach(([s,c])=>{
+    const btn=document.createElement("button");
+    btn.className="status-btn"; btn.textContent=s; btn.dataset.status=s;
+    if(s==="ปกติ"){btn.style.background=c.bg;btn.style.color=c.color;}
+    btn.onclick=()=>selectStatus(s);
+    document.getElementById("status-btns").appendChild(btn);
+  });
+
+  // Filter chips
+  const depts=["ทั้งหมด",...new Set(EMPLOYEES.map(e=>e.dept))];
+  depts.forEach(d=>{
+    const btn=document.createElement("button");
+    btn.className="chip"+(d==="ทั้งหมด"?" active":"");
+    btn.textContent=d;
+    btn.onclick=()=>{activeFilter=d;document.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));btn.classList.add("active");renderProgressList();};
+    document.getElementById("dept-chips").appendChild(btn);
+  });
+
+  // Meeting room
+  const r=MEETING_ROOM;
+  document.getElementById("rooms-container").innerHTML=`
+    <div style="grid-column:1/-1;max-width:640px;margin:0 auto;width:100%">
+      <div class="room-card" style="padding:32px">
+        <div style="text-align:center;margin-bottom:28px">
+          <div style="font-size:48px;margin-bottom:10px">${r.icon}</div>
+          <div style="font-size:22px;font-weight:800;margin-bottom:6px">${r.name}</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.9">${r.desc.replace(/\n/g,"<br/>")}</div>
+          <div style="display:flex;justify-content:center;gap:24px;margin-top:14px;font-size:12px;color:var(--muted)">
+            <span>👥 ${r.participants}</span><span>📅 ${r.schedule}</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div style="background:#0b0f1a;border-radius:14px;padding:20px;border:1px solid #1e2d45;text-align:center">
+            <div style="font-size:28px;margin-bottom:8px">💻</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:4px">Zoom</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Meeting ID: ${r.zoom.meetingId}</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:16px">${r.zoom.passcode?"Passcode: "+r.zoom.passcode:"เข้าได้ทันที"}</div>
+            <a class="join-btn join-zoom" href="${r.zoom.link}" target="_blank" rel="noopener">เข้าร่วมผ่าน Zoom →</a>
+          </div>
+          <div style="background:#0b0f1a;border-radius:14px;padding:20px;border:1px solid #1e2d45;text-align:center">
+            <div style="font-size:28px;margin-bottom:8px">🟢</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:4px">Google Meet</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">ไม่ต้องติดตั้งแอป</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:16px">เปิดใน Browser ได้เลย</div>
+            <a class="join-btn join-meet" href="${r.meet.link}" target="_blank" rel="noopener">เข้าร่วมผ่าน Meet →</a>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ─── DASHBOARD ───
+function renderDashboard() {
+  const online=Object.values(attendance).filter(a=>a.checkIn&&!a.checkOut).length;
+  const avg=reports.length?Math.round(reports.reduce((a,r)=>a+r.progress,0)/reports.length):0;
+  const done=reports.filter(r=>r.status==="เสร็จสิ้น").length;
+  document.getElementById("stat-wfh").textContent=reports.length;
+  document.getElementById("stat-online").textContent=online;
+  document.getElementById("stat-progress").textContent=avg+"%";
+  document.getElementById("stat-done").textContent=done;
+
+  document.getElementById("att-overview").innerHTML=EMPLOYEES.map(emp=>{
+    const att=attendance[emp.id];
+    const label=!att?"ยังไม่ได้ Check In":!att.checkOut?`เข้างาน ${att.checkIn}`:`${att.checkIn} – ${att.checkOut}`;
+    const dot=!att?"#475569":!att.checkOut?"#10b981":"#3b82f6";
+    const glow=att&&!att.checkOut?`box-shadow:0 0 8px ${dot}`:"";
+    return `<div class="att-card"><div class="att-dot" style="background:${dot};${glow}"></div><div><div class="att-name">${emp.name}</div><div class="att-time">${label}</div></div></div>`;
+  }).join("");
+
+  renderProgressList();
+}
+
+function renderProgressList() {
+  const list=activeFilter==="ทั้งหมด"?reports:reports.filter(r=>r.employee.dept===activeFilter);
+  const el=document.getElementById("progress-list");
+  if(!list.length){el.innerHTML=`<div style="text-align:center;color:var(--muted);padding:40px">ยังไม่มีรายงานวันนี้</div>`;return;}
+  el.innerHTML=list.map(r=>{
+    const s=STATUSES[r.status]||STATUSES["ปกติ"];
+    const bc=r.progress>=80?"#10b981":r.progress>=50?"#6366f1":"#f59e0b";
+    return `<div class="progress-row">
+      <div class="avatar">${r.employee.avatar}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <div><span style="font-size:14px;font-weight:600">${r.employee.name}</span></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="badge" style="background:${s.bg};color:${s.color}">● ${r.status}</span>
+            <span style="font-size:14px;font-weight:700;color:#a78bfa">${r.progress}%</span>
+          </div>
+        </div>
+        <div class="pbar-wrap"><div class="pbar" style="width:${r.progress}%;background:${bc}"></div></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:5px">🕐 ${r.checkIn||"--"} – ${r.checkOut||"--"} | ${r.tasks.join(", ")}</div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+// ─── CHECK IN/OUT ───
+const getNow=()=>new Date().toTimeString().slice(0,5);
+
+window.updateCIDisplay = function() {
+  const id=parseInt(document.getElementById("ci-emp").value);
+  const att=attendance[id];
+  const ciD=document.getElementById("ci-display");
+  const coD=document.getElementById("co-display");
+  const stD=document.getElementById("ci-status");
+  const btnCI=document.getElementById("btn-checkin");
+  const btnCO=document.getElementById("btn-checkout");
+  if(!id){ciD.textContent="--:--";ciD.style.color="#2d3f5a";coD.textContent="--:--";coD.style.color="#2d3f5a";stD.textContent="ยังไม่เข้างาน";stD.style.color="var(--muted)";btnCI.disabled=true;btnCO.disabled=true;return;}
+  ciD.textContent=att?.checkIn||"--:--"; ciD.style.color=att?.checkIn?"#10b981":"#2d3f5a";
+  coD.textContent=att?.checkOut||"--:--"; coD.style.color=att?.checkOut?"#3b82f6":"#2d3f5a";
+  if(!att){stD.textContent="ยังไม่เข้างาน";stD.style.color="var(--muted)";btnCI.disabled=false;btnCO.disabled=true;}
+  else if(!att.checkOut){stD.textContent="🟢 กำลังทำงาน";stD.style.color="#10b981";btnCI.disabled=true;btnCO.disabled=false;}
+  else{stD.textContent="🔵 เลิกงานแล้ว";stD.style.color="#3b82f6";btnCI.disabled=true;btnCO.disabled=true;}
+};
+
+function showFeedback(msg,type){
+  const el=document.getElementById("ci-feedback");
+  el.style.display="block";
+  el.style.background=type==="in"?"#064e3b":"#1e3a5f";
+  el.style.color=type==="in"?"#6ee7b7":"#93c5fd";
+  el.style.border=`1px solid ${type==="in"?"#10b981":"#3b82f6"}`;
+  el.textContent=msg;
+  setTimeout(()=>{el.style.display="none";},3000);
+}
+
+window.doCheckIn = async function(){
+  const id=parseInt(document.getElementById("ci-emp").value);
+  if(!id) return;
+  const t=getNow();
+  await saveAttendance(id, {checkIn:t, checkOut:null, employeeId:id});
+  showFeedback(`✅ Check In สำเร็จ! เวลา ${t}`,"in");
+};
+
+window.doCheckOut = async function(){
+  const id=parseInt(document.getElementById("ci-emp").value);
+  if(!id||!attendance[id]) return;
+  const t=getNow();
+  await saveAttendance(id, {...attendance[id], checkOut:t});
+  showFeedback(`🔵 Check Out สำเร็จ! เวลา ${t}`,"out");
+};
+
+// ─── REPORT FORM ───
+window.updateAttInfo = function(){
+  const id=parseInt(document.getElementById("rpt-emp").value);
+  const box=document.getElementById("att-info-box");
+  if(!id||!attendance[id]){box.style.display="none";return;}
+  const att=attendance[id];
+  box.style.display="block";
+  box.innerHTML=`🕐 Check In: <strong style="color:#10b981">${att.checkIn||"--"}</strong>&nbsp;&nbsp;Check Out: <strong style="color:#3b82f6">${att.checkOut||"--"}</strong>`;
+};
+
+function toggleTask(task,btn){
+  if(selectedTasks.includes(task)){selectedTasks=selectedTasks.filter(t=>t!==task);btn.classList.remove("active");}
+  else{selectedTasks.push(task);btn.classList.add("active");}
+}
+
+function selectStatus(s){
+  currentStatus=s;
+  document.querySelectorAll(".status-btn").forEach(b=>{
+    if(b.dataset.status===s){b.style.background=STATUSES[s].bg;b.style.color=STATUSES[s].color;}
+    else{b.style.background="";b.style.color="";}
+  });
+}
+
+window.submitReport = async function(){
+  const empId=parseInt(document.getElementById("rpt-emp").value);
+  if(!empId||selectedTasks.length===0) return;
+  const emp=EMPLOYEES.find(e=>e.id===empId);
+  const att=attendance[empId];
+  const progress=parseInt(document.getElementById("prog-slider").value);
+  const note=document.getElementById("rpt-note").value;
+  const newReport={
+    id:Date.now(), employeeId:empId,
+    checkIn:att?.checkIn||"--:--", checkOut:att?.checkOut||"--:--",
+    tasks:[...selectedTasks], status:currentStatus, note, progress,
+    date:new Date().toISOString().slice(0,10),
+    timestamp:new Date().toISOString(),
+  };
+  await saveReport(newReport);
+  const alertEl=document.getElementById("success-alert");
+  alertEl.style.display="block";
+  setTimeout(()=>{alertEl.style.display="none";},2500);
+  // Reset
+  document.getElementById("rpt-emp").value="";
+  document.getElementById("rpt-note").value="";
+  document.getElementById("prog-slider").value=50;
+  document.getElementById("prog-label").textContent="50%";
+  selectedTasks=[];
+  document.querySelectorAll(".tag").forEach(t=>t.classList.remove("active"));
+  selectStatus("ปกติ");
+  updateAttInfo();
+};
+
+// ─── REPORTS TAB ───
+function renderReports(){
+  const grid=document.getElementById("report-grid");
+  if(!reports.length){grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:60px">ยังไม่มีรายงาน</div>`;return;}
+  grid.innerHTML=reports.map(r=>{
+    const s=STATUSES[r.status]||STATUSES["ปกติ"];
+    const bc=r.progress>=80?"#10b981":r.progress>=50?"#6366f1":"#f59e0b";
+    return `<div class="report-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div class="avatar" style="width:40px;height:40px;border-radius:10px;font-size:12px">${r.employee.avatar}</div>
+          <div><div style="font-size:14px;font-weight:600">${r.employee.name}</div><div style="font-size:11px;color:var(--muted)">${r.date||""}</div></div>
+        </div>
+        <span class="badge" style="background:${s.bg};color:${s.color}">${r.status}</span>
+      </div>
+      <div style="margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:12px;color:var(--muted)">ความคืบหน้า</span>
+          <span style="font-size:14px;font-weight:700;color:#a78bfa">${r.progress}%</span>
+        </div>
+        <div class="pbar-wrap"><div class="pbar" style="width:${r.progress}%;background:${bc}"></div></div>
+      </div>
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:10px">🕐 ${r.checkIn} – ${r.checkOut}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${r.tasks.map(t=>`<span class="badge" style="background:var(--surface2);color:var(--muted)">${t}</span>`).join("")}</div>
+      ${r.note?`<div style="font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:10px;margin-top:10px">📝 ${r.note}</div>`:""}
+    </div>`;
+  }).join("");
+}
+
+// ─── CUSTOM LINK ───
+window.joinCustom=function(){const l=document.getElementById("custom-link").value.trim();if(l)window.open(l,"_blank","noopener");};
+
+// ─── START ───
+initUI();
+listenFirebase();
+
+</script>
+</body>
+</html>
