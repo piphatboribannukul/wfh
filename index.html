@@ -101,6 +101,27 @@
   .submit-btn{width:100%;padding:14px;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-family:'Sarabun',sans-serif;font-size:15px;font-weight:700;transition:all 0.2s;margin-top:8px;}
   .submit-btn:disabled{background:var(--surface2);color:#334155;cursor:not-allowed;}
 
+  /* FILE ATTACHMENT */
+  .file-upload-area{border:2px dashed var(--border);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;background:#0b0f1a;position:relative;}
+  .file-upload-area:hover,.file-upload-area.dragover{border-color:var(--accent);background:#0f1420;}
+  .file-upload-area input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+  .file-preview-list{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+  .file-preview-item{display:flex;align-items:center;gap:10px;background:var(--surface2);border-radius:8px;padding:8px 12px;border:1px solid var(--border);}
+  .file-preview-thumb{width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0;}
+  .file-preview-icon{width:36px;height:36px;border-radius:6px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .file-preview-name{flex:1;font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .file-preview-size{font-size:11px;color:var(--muted);flex-shrink:0;}
+  .file-preview-remove{background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;padding:0 2px;flex-shrink:0;line-height:1;}
+  .attach-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .attach-thumb{width:64px;height:64px;border-radius:8px;object-fit:cover;cursor:pointer;border:1px solid var(--border);transition:transform 0.2s;}
+  .attach-thumb:hover{transform:scale(1.05);}
+  .attach-file-chip{display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);font-size:11px;color:var(--muted);cursor:pointer;text-decoration:none;}
+  .attach-file-chip:hover{border-color:var(--accent);color:var(--text);}
+  .lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;}
+  .lightbox.open{display:flex;}
+  .lightbox img{max-width:90vw;max-height:90vh;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,.6);}
+  .lightbox-close{position:absolute;top:20px;right:24px;color:#fff;font-size:32px;cursor:pointer;background:none;border:none;line-height:1;}
+
   /* REPORT CARDS */
   .report-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
   .report-card{background:var(--surface);border-radius:16px;padding:20px;border:1px solid var(--border);}
@@ -146,6 +167,79 @@
     .form-select,.form-textarea{font-size:16px;}
     .tag{font-size:12px;padding:6px 12px;}
   }
+
+  /* EMPLOYEE MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center;padding:16px;}
+  .modal-overlay.open{display:flex;}
+  .modal-box{background:var(--surface);border-radius:20px;border:1px solid var(--border);width:min(480px,100%);max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+  .modal-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  .modal-head h3{font-size:16px;font-weight:800;}
+  .modal-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:0;}
+  .modal-close:hover{color:var(--text);}
+  .modal-body{padding:20px 24px;overflow-y:auto;flex:1;}
+  .emp-list-item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:#0b0f1a;border-radius:12px;border:1px solid var(--border);margin-bottom:8px;}
+  .emp-list-avatar{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+  .emp-list-info{flex:1;min-width:0;}
+  .emp-list-name{font-size:13px;font-weight:600;}
+  .emp-list-dept{font-size:11px;color:var(--muted);}
+  .emp-delete-btn{background:none;border:1px solid #374151;border-radius:8px;color:#ef4444;font-size:13px;cursor:pointer;padding:5px 10px;transition:all 0.2s;flex-shrink:0;}
+  .emp-delete-btn:hover{background:#ef4444;color:#fff;border-color:#ef4444;}
+  .emp-add-form{background:#0b0f1a;border-radius:12px;border:1px solid var(--border);padding:16px;margin-top:16px;}
+  .emp-add-form h4{font-size:13px;font-weight:700;margin-bottom:12px;color:var(--muted);}
+  .emp-add-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+  .emp-add-input{width:100%;padding:10px 14px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Sarabun',sans-serif;font-size:13px;}
+  .emp-add-input:focus{outline:none;border-color:var(--accent);}
+  .emp-add-btn{width:100%;padding:11px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;transition:all 0.2s;}
+  .emp-add-btn:hover{filter:brightness(1.1);}
+  .emp-add-btn:disabled{background:var(--surface2);color:#334155;cursor:not-allowed;}
+  @media(max-width:640px){.emp-add-row{grid-template-columns:1fr;}}
+
+  /* SUMMARY TAB */
+  .date-nav{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap;}
+  .date-nav-btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;background:var(--surface2);color:var(--muted);font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;transition:all 0.2s;}
+  .date-nav-btn:hover{background:var(--accent);color:#fff;}
+  .date-nav-btn:disabled{opacity:0.4;cursor:not-allowed;}
+  .date-input{padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-family:'Sarabun',sans-serif;font-size:13px;cursor:pointer;}
+  .date-label{font-size:16px;font-weight:800;color:var(--text);}
+  .summary-emp-card{background:var(--surface);border-radius:16px;border:1px solid var(--border);overflow:hidden;margin-bottom:16px;}
+  .summary-emp-header{padding:16px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:background 0.15s;}
+  .summary-emp-header:hover{background:var(--surface2);}
+  .summary-emp-body{padding:0 20px 16px;border-top:1px solid var(--border);}
+  .summary-task-badge{display:inline-flex;align-items:center;padding:4px 12px;border-radius:20px;font-size:12px;background:var(--surface2);color:var(--muted);margin:3px;}
+  .summary-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+  .summary-stat-box{background:#0b0f1a;border-radius:10px;padding:12px;text-align:center;border:1px solid var(--border);}
+  .summary-stat-box .val{font-size:20px;font-weight:800;margin-bottom:2px;}
+  .summary-stat-box .lbl{font-size:10px;color:var(--muted);}
+  .summary-attach-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+  .chevron{transition:transform 0.2s;font-size:12px;color:var(--muted);}
+  .chevron.open{transform:rotate(90deg);}
+  .summary-empty{text-align:center;color:var(--muted);padding:60px 0;font-size:14px;}
+  .summary-overview{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
+
+  /* ADMIN LOGIN */
+  .admin-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#fef3c7;color:#92400e;}
+  .emp-cred-row{background:#0b0f1a;border-radius:8px;padding:10px 12px;margin-top:6px;font-size:12px;color:var(--muted);}
+  .emp-cred-val{font-family:'IBM Plex Mono',monospace;color:var(--text);font-size:12px;}
+
+  /* AUTH BOX */
+  .auth-box{background:#0b0f1a;border:1px solid var(--border);border-radius:12px;padding:16px;margin:14px 0;display:none;}
+  .auth-box.show{display:block;}
+  .auth-box-title{font-size:12px;color:var(--muted);margin-bottom:10px;}
+  .auth-input-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+  .auth-input{width:100%;padding:9px 12px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Sarabun',sans-serif;font-size:14px;}
+  .auth-input:focus{outline:none;border-color:var(--accent);}
+  .auth-btn{width:100%;padding:10px;border-radius:8px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-family:'Sarabun',sans-serif;font-size:14px;font-weight:700;transition:all 0.2s;}
+  .auth-btn:hover{filter:brightness(1.1);}
+  .auth-err{font-size:12px;color:#ef4444;text-align:center;margin-top:6px;display:none;}
+  .auth-ok{background:#064e3b;border:1px solid var(--green);border-radius:8px;padding:8px 12px;font-size:12px;color:#6ee7b7;display:none;align-items:center;gap:6px;}
+  .auth-ok.show{display:flex;}
+  .auth-logout{background:none;border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:11px;color:var(--muted);cursor:pointer;margin-left:auto;}
+
+  @media(max-width:640px){
+    .summary-overview{grid-template-columns:repeat(2,1fr);}
+    .summary-stat-row{grid-template-columns:repeat(2,1fr);}
+    .date-label{font-size:14px;}
+  }
 </style>
 </head>
 <body>
@@ -168,8 +262,10 @@
   <nav class="nav">
     <button class="nav-btn active" onclick="showTab('dashboard')">Dashboard</button>
     <button class="nav-btn" onclick="showTab('meeting')">ห้องประชุม</button>
-    <button class="nav-btn" onclick="showTab('report')">รายงาน</button>
+    <button class="nav-btn" onclick="showTab('report')">รายงานวันนี้</button>
+    <button class="nav-btn" onclick="showTab('summary')">สรุปรายงาน</button>
     <button class="nav-btn" onclick="showTab('form')">บันทึก</button>
+    <button onclick="openEmpModal()" style="padding:8px 16px;border-radius:8px;border:1px solid var(--border);cursor:pointer;background:var(--surface2);color:var(--muted);font-family:'Sarabun',sans-serif;font-size:13px;transition:all 0.2s;white-space:nowrap;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">👤 จัดการพนักงาน</button>
   </nav>
 </div>
 
@@ -177,6 +273,7 @@
 <div class="sync-bar">
   <div class="sync-dot" id="sync-dot"></div>
   <span id="sync-status">กำลังเชื่อมต่อ...</span>
+  <button onclick="openEmpModal()" style="margin-left:auto;padding:4px 12px;border-radius:6px;border:1px solid var(--border);cursor:pointer;background:var(--surface2);color:var(--muted);font-family:'Sarabun',sans-serif;font-size:12px;white-space:nowrap;transition:all 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">👤 จัดการพนักงาน</button>
 </div>
 
 <div class="main">
@@ -223,6 +320,26 @@
     </div>
   </div>
 
+  <!-- SUMMARY -->
+  <div class="tab" id="tab-summary">
+    <!-- Date navigation -->
+    <div class="date-nav">
+      <button class="date-nav-btn" id="btn-prev-day" onclick="changeDay(-1)">◀ ก่อนหน้า</button>
+      <input type="date" class="date-input" id="summary-date-picker" onchange="loadSummaryDate(this.value)"/>
+      <span class="date-label" id="summary-date-label">—</span>
+      <button class="date-nav-btn" id="btn-next-day" onclick="changeDay(1)">ถัดไป ▶</button>
+      <button class="date-nav-btn" onclick="goToday()" style="margin-left:auto">📅 วันนี้</button>
+    </div>
+
+    <!-- Overview stats -->
+    <div class="summary-overview" id="summary-overview"></div>
+
+    <!-- Per-employee cards -->
+    <div id="summary-cards">
+      <div class="summary-empty">⏳ กำลังโหลด...</div>
+    </div>
+  </div>
+
   <!-- FORM -->
   <div class="tab" id="tab-form">
     <div style="max-width:620px;margin:0 auto">
@@ -236,9 +353,24 @@
         </div>
         <div class="form-group">
           <label class="form-label">เลือกพนักงาน</label>
-          <select class="form-select" id="ci-emp" onchange="updateCIDisplay()">
+          <select class="form-select" id="ci-emp" onchange="onCiEmpChange()">
             <option value="">-- เลือกพนักงาน --</option>
           </select>
+        </div>
+
+        <!-- Auth box for check in/out -->
+        <div class="auth-box" id="ci-auth-box">
+          <div class="auth-box-title">🔐 ยืนยันตัวตน — กรอก Username / Password ของคุณ</div>
+          <div class="auth-input-row">
+            <input class="auth-input" id="ci-username" placeholder="Username" autocomplete="username"/>
+            <input class="auth-input" id="ci-password" placeholder="Password" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')verifyCIAuth()"/>
+          </div>
+          <button class="auth-btn" onclick="verifyCIAuth()">ยืนยันตัวตน</button>
+          <div class="auth-err" id="ci-auth-err">Username หรือ Password ไม่ถูกต้อง</div>
+        </div>
+        <div class="auth-ok" id="ci-auth-ok">
+          <span>✅ ยืนยันตัวตนสำเร็จ</span>
+          <button class="auth-logout" onclick="resetCIAuth()">เปลี่ยนผู้ใช้</button>
         </div>
         <div class="time-display">
           <div class="time-box">
@@ -272,10 +404,28 @@
         <div class="success-alert" id="success-alert">✅ บันทึกรายงานเรียบร้อยแล้ว!</div>
         <div class="form-group">
           <label class="form-label">พนักงาน *</label>
-          <select class="form-select" id="rpt-emp" onchange="updateAttInfo()">
+          <select class="form-select" id="rpt-emp" onchange="onRptEmpChange()">
             <option value="">-- เลือกพนักงาน --</option>
           </select>
         </div>
+
+        <!-- Auth box for report -->
+        <div class="auth-box" id="rpt-auth-box">
+          <div class="auth-box-title">🔐 ยืนยันตัวตน — กรอก Username / Password ของคุณ</div>
+          <div class="auth-input-row">
+            <input class="auth-input" id="rpt-username" placeholder="Username" autocomplete="username"/>
+            <input class="auth-input" id="rpt-password" placeholder="Password" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')verifyRptAuth()"/>
+          </div>
+          <button class="auth-btn" onclick="verifyRptAuth()">ยืนยันตัวตน</button>
+          <div class="auth-err" id="rpt-auth-err">Username หรือ Password ไม่ถูกต้อง</div>
+        </div>
+        <div class="auth-ok" id="rpt-auth-ok">
+          <span>✅ ยืนยันตัวตนสำเร็จ</span>
+          <button class="auth-logout" onclick="resetRptAuth()">เปลี่ยนผู้ใช้</button>
+        </div>
+
+        <div id="rpt-form-body" style="display:none">
+        <div id="rpt-form-body" style="display:none">
         <div class="att-info-box" id="att-info-box"></div>
         <div class="form-group">
           <label class="form-label">งานที่ทำวันนี้ * (เลือกได้หลายข้อ)</label>
@@ -293,19 +443,90 @@
           <label class="form-label">หมายเหตุ (ถ้ามี)</label>
           <textarea class="form-textarea" id="rpt-note" rows="3" placeholder="เช่น ติดขัดเรื่อง... หรือต้องการความช่วยเหลือด้าน..."></textarea>
         </div>
+
+        <!-- FILE ATTACHMENT -->
+        <div class="form-group">
+          <label class="form-label">แนบไฟล์ / รูปภาพ (ไม่เกิน 1MB ต่อไฟล์)</label>
+          <div class="file-upload-area" id="file-drop-zone">
+            <input type="file" id="file-input" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" onchange="handleFileSelect(this.files)"/>
+            <div style="font-size:28px;margin-bottom:8px">📎</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">กดเพื่อเลือกไฟล์ หรือลากมาวางที่นี่</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">รูปภาพ, PDF, Word, Excel · สูงสุด 1MB/ไฟล์</div>
+          </div>
+          <div class="file-preview-list" id="file-preview-list"></div>
+        </div>
+
         <button class="submit-btn" id="submit-btn" onclick="submitReport()" disabled>บันทึกรายงาน</button>
+        </div><!-- end rpt-form-body -->
       </div>
     </div>
   </div>
 
 </div>
 
+<!-- EMPLOYEE MODAL -->
+<div class="modal-overlay" id="emp-modal" onclick="if(event.target===this)closeEmpModal()">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3>👤 จัดการรายชื่อพนักงาน</h3>
+      <button class="modal-close" onclick="closeEmpModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Admin login gate -->
+      <div id="admin-gate" style="text-align:center;padding:20px 0">
+        <div style="font-size:32px;margin-bottom:12px">🔐</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px">เข้าสู่ระบบ Admin</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:16px">กรอก Admin ID เพื่อจัดการพนักงาน</div>
+        <input class="emp-add-input" id="admin-id-input" type="password" placeholder="Admin ID" style="text-align:center;margin-bottom:10px" onkeydown="if(event.key==='Enter')checkAdmin()"/>
+        <button class="emp-add-btn" onclick="checkAdmin()">เข้าสู่ระบบ</button>
+        <div id="admin-err" style="color:#ef4444;font-size:12px;margin-top:8px;display:none">Admin ID ไม่ถูกต้อง</div>
+      </div>
+
+      <!-- Main content (after admin login) -->
+      <div id="admin-content" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+          <div style="font-size:13px;font-weight:700;color:var(--text)">รายชื่อพนักงาน</div>
+          <span class="admin-badge">🔑 Admin</span>
+        </div>
+        <div id="emp-list-container"></div>
+
+        <!-- Add employee form -->
+        <div class="emp-add-form">
+          <h4>➕ เพิ่มพนักงานใหม่</h4>
+          <div class="emp-add-row" style="grid-template-columns:1fr 1fr">
+            <input class="emp-add-input" id="new-emp-name" placeholder="ชื่อ-นามสกุล *" oninput="validateEmpForm()"/>
+            <input class="emp-add-input" id="new-emp-code" placeholder="รหัสพนักงาน *" oninput="validateEmpForm()"/>
+          </div>
+          <div class="emp-add-row" style="grid-template-columns:1fr 1fr">
+            <input class="emp-add-input" id="new-emp-position" placeholder="ตำแหน่ง"/>
+            <input class="emp-add-input" id="new-emp-dept" placeholder="แผนก" value="กองบูรณาการคุณภาพน้ำ"/>
+          </div>
+          <div class="emp-add-row" style="grid-template-columns:1fr 1fr">
+            <input class="emp-add-input" id="new-emp-user" placeholder="Username *" oninput="validateEmpForm()"/>
+            <input class="emp-add-input" id="new-emp-pass" placeholder="Password *" type="password" oninput="validateEmpForm()"/>
+          </div>
+          <button class="emp-add-btn" id="emp-add-btn" onclick="addEmployee()" disabled>เพิ่มพนักงาน</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt=""/>
+</div>
+
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
-    <button class="bnav-btn active" id="bnav-dashboard" onclick="showTab('dashboard')"><span class="bnav-icon">📊</span>Dashboard</button>
+    <button class="bnav-btn active" id="bnav-dashboard" onclick="showTab('dashboard')"><span class="bnav-icon">📊</span>หน้าหลัก</button>
     <button class="bnav-btn" id="bnav-meeting" onclick="showTab('meeting')"><span class="bnav-icon">📹</span>ประชุม</button>
-    <button class="bnav-btn" id="bnav-report" onclick="showTab('report')"><span class="bnav-icon">📄</span>รายงาน</button>
+    <button class="bnav-btn" id="bnav-report" onclick="showTab('report')"><span class="bnav-icon">📄</span>วันนี้</button>
+    <button class="bnav-btn" id="bnav-summary" onclick="showTab('summary')"><span class="bnav-icon">📅</span>สรุป</button>
     <button class="bnav-btn" id="bnav-form" onclick="showTab('form')"><span class="bnav-icon">✏️</span>บันทึก</button>
   </div>
 </nav>
@@ -330,12 +551,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ── Static Data ──
-const EMPLOYEES = [
-  { id:1, name:"นายเฉลิมเกียรติ ทับทิมศรี",  dept:"กองบูรณาการคุณภาพน้ำ", avatar:"ฉก" },
-  { id:2, name:"นายพิพัฒน์ บริบาลนุกูล",    dept:"กองบูรณาการคุณภาพน้ำ", avatar:"พพ" },
-  { id:3, name:"นางสาวธิติมา แสงประภากร",   dept:"กองบูรณาการคุณภาพน้ำ", avatar:"ธต" },
+// ── Employees — โหลดจาก Firebase (fallback เริ่มต้น 3 คน) ──
+let EMPLOYEES = [];
+const DEFAULT_EMPLOYEES = [
+  { id:1, name:"นายเฉลิมเกียรติ ทับทิมศรี",  dept:"กองบูรณาการคุณภาพน้ำ", avatar:"ฉก", empCode:"001", position:"นักวิทยาศาสตร์", username:"chalermkiat", password:"1234" },
+  { id:2, name:"นายพิพัฒน์ บริบาลนุกูล",    dept:"กองบูรณาการคุณภาพน้ำ", avatar:"พพ", empCode:"002", position:"นักวิทยาศาสตร์", username:"piphat", password:"1234" },
+  { id:3, name:"นางสาวธิติมา แสงประภากร",   dept:"กองบูรณาการคุณภาพน้ำ", avatar:"ธต", empCode:"003", position:"นักวิทยาศาสตร์", username:"thitima", password:"1234" },
 ];
+const ADMIN_ID = "admin1234"; // ← เปลี่ยน Admin ID ได้ตรงนี้
+let isAdminLoggedIn = false;
 const TASKS = ["ประชุมทีม","พัฒนา Feature","รีวิวโค้ด","เขียนเอกสาร","ดูแล Bug","วางแผนโปรเจกต์","ฝึกอบรม","ติดต่อลูกค้า"];
 const STATUSES = {
   "ปกติ":   { bg:"#d1fae5", color:"#065f46" },
@@ -372,6 +596,24 @@ function setSyncStatus(state, msg) {
 // ─── FIREBASE LISTENERS ───
 function listenFirebase() {
   const today = todayKey();
+
+  // ── Employees (realtime) ──
+  onValue(ref(db, "employees"), snap => {
+    if (snap.exists()) {
+      EMPLOYEES = Object.entries(snap.val()).map(([fbKey, v]) => ({ ...v, fbKey }));
+      EMPLOYEES.sort((a,b) => a.id - b.id);
+    } else {
+      // ครั้งแรก: seed DEFAULT_EMPLOYEES เข้า Firebase
+      EMPLOYEES = DEFAULT_EMPLOYEES;
+      DEFAULT_EMPLOYEES.forEach(e => {
+        set(ref(db, `employees/${e.id}`), { id:e.id, name:e.name, dept:e.dept, avatar:e.avatar });
+      });
+    }
+    // อัปเดต dropdowns และ dashboard
+    rebuildDropdowns();
+    renderDashboard();
+    renderEmpList();
+  });
 
   // Attendance
   onValue(ref(db, `attendance/${today}`), snap => {
@@ -434,25 +676,19 @@ window.showTab = function(name) {
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
   document.querySelectorAll(".bnav-btn").forEach(b=>b.classList.remove("active"));
   document.getElementById("tab-"+name).classList.add("active");
-  ["dashboard","meeting","report","form"].forEach((t,i)=>{
+  ["dashboard","meeting","report","summary","form"].forEach((t,i)=>{
     if(t===name) document.querySelectorAll(".nav-btn")[i].classList.add("active");
   });
   const bnav = document.getElementById("bnav-"+name);
   if(bnav) bnav.classList.add("active");
   if(name==="dashboard") renderDashboard();
   if(name==="report") renderReports();
+  if(name==="summary") initSummary();
 };
 
 // ─── INIT UI ───
 function initUI() {
-  // Employee dropdowns
-  [document.getElementById("ci-emp"), document.getElementById("rpt-emp")].forEach(sel=>{
-    EMPLOYEES.forEach(e=>{
-      const o=document.createElement("option");
-      o.value=e.id; o.textContent=e.name;
-      sel.appendChild(o);
-    });
-  });
+  // Employee dropdowns — จะถูก populate โดย rebuildDropdowns() หลัง Firebase โหลด EMPLOYEES
 
   // Task tags
   TASKS.forEach(t=>{
@@ -529,7 +765,7 @@ function renderDashboard() {
     const label=!att?"ยังไม่ได้ Check In":!att.checkOut?`เข้างาน ${att.checkIn}`:`${att.checkIn} – ${att.checkOut}`;
     const dot=!att?"#475569":!att.checkOut?"#10b981":"#3b82f6";
     const glow=att&&!att.checkOut?`box-shadow:0 0 8px ${dot}`:"";
-    return `<div class="att-card"><div class="att-dot" style="background:${dot};${glow}"></div><div><div class="att-name">${emp.name}</div><div class="att-time">${label}</div></div></div>`;
+    return `<div class="att-card"><div class="att-dot" style="background:${dot};${glow}"></div><div><div class="att-name">${emp.name}</div><div class="att-time">${emp.empCode?`<span style="color:#a78bfa;font-size:9px">#${emp.empCode}</span> · `:""}${emp.position?emp.position+" · ":""}<span style="color:var(--muted)">${label}</span></div></div></div>`;
   }).join("");
 
   renderProgressList();
@@ -559,10 +795,113 @@ function renderProgressList() {
   }).join("");
 }
 
+// ─── AUTH STATE ───
+let ciAuthVerified = false;   // Check In/Out ยืนยันแล้วไหม
+let rptAuthVerified = false;  // Report form ยืนยันแล้วไหม
+
+// ── เมื่อเลือกพนักงานใน Check In/Out ──
+window.onCiEmpChange = function() {
+  ciAuthVerified = false;
+  const id = parseInt(document.getElementById("ci-emp").value);
+  // reset auth UI
+  document.getElementById("ci-auth-box").className = id ? "auth-box show" : "auth-box";
+  document.getElementById("ci-auth-ok").className = "auth-ok";
+  document.getElementById("ci-username").value = "";
+  document.getElementById("ci-password").value = "";
+  document.getElementById("ci-auth-err").style.display = "none";
+  // reset time display & buttons
+  const ciD=document.getElementById("ci-display");
+  const coD=document.getElementById("co-display");
+  const stD=document.getElementById("ci-status");
+  ciD.textContent="--:--"; ciD.style.color="#2d3f5a";
+  coD.textContent="--:--"; coD.style.color="#2d3f5a";
+  stD.textContent="ยังไม่เข้างาน"; stD.style.color="var(--muted)";
+  document.getElementById("btn-checkin").disabled=true;
+  document.getElementById("btn-checkout").disabled=true;
+};
+
+// ── ยืนยันตัวตน Check In/Out ──
+window.verifyCIAuth = function() {
+  const id = parseInt(document.getElementById("ci-emp").value);
+  const emp = EMPLOYEES.find(e=>e.id===id);
+  if(!emp) return;
+  const u = document.getElementById("ci-username").value.trim();
+  const p = document.getElementById("ci-password").value.trim();
+  if(u===emp.username && p===emp.password) {
+    ciAuthVerified = true;
+    document.getElementById("ci-auth-box").className = "auth-box";
+    document.getElementById("ci-auth-ok").className = "auth-ok show";
+    updateCIDisplay();
+  } else {
+    const err = document.getElementById("ci-auth-err");
+    err.style.display = "block";
+    setTimeout(()=>{ err.style.display="none"; }, 2500);
+  }
+};
+
+// ── Reset Check In/Out auth ──
+window.resetCIAuth = function() {
+  ciAuthVerified = false;
+  document.getElementById("ci-emp").value = "";
+  document.getElementById("ci-auth-ok").className = "auth-ok";
+  document.getElementById("ci-auth-box").className = "auth-box";
+  document.getElementById("ci-display").textContent="--:--";
+  document.getElementById("co-display").textContent="--:--";
+  document.getElementById("ci-status").textContent="ยังไม่เข้างาน";
+  document.getElementById("btn-checkin").disabled=true;
+  document.getElementById("btn-checkout").disabled=true;
+};
+
+// ── เมื่อเลือกพนักงานใน Report Form ──
+window.onRptEmpChange = function() {
+  rptAuthVerified = false;
+  const id = parseInt(document.getElementById("rpt-emp").value);
+  document.getElementById("rpt-auth-box").className = id ? "auth-box show" : "auth-box";
+  document.getElementById("rpt-auth-ok").className = "auth-ok";
+  document.getElementById("rpt-form-body").style.display = "none";
+  document.getElementById("rpt-username").value = "";
+  document.getElementById("rpt-password").value = "";
+  document.getElementById("rpt-auth-err").style.display = "none";
+  document.getElementById("submit-btn").disabled = true;
+  document.getElementById("att-info-box").style.display = "none";
+};
+
+// ── ยืนยันตัวตน Report ──
+window.verifyRptAuth = function() {
+  const id = parseInt(document.getElementById("rpt-emp").value);
+  const emp = EMPLOYEES.find(e=>e.id===id);
+  if(!emp) return;
+  const u = document.getElementById("rpt-username").value.trim();
+  const p = document.getElementById("rpt-password").value.trim();
+  if(u===emp.username && p===emp.password) {
+    rptAuthVerified = true;
+    document.getElementById("rpt-auth-box").className = "auth-box";
+    document.getElementById("rpt-auth-ok").className = "auth-ok show";
+    document.getElementById("rpt-form-body").style.display = "block";
+    document.getElementById("submit-btn").disabled = false;
+    updateAttInfo();
+  } else {
+    const err = document.getElementById("rpt-auth-err");
+    err.style.display = "block";
+    setTimeout(()=>{ err.style.display="none"; }, 2500);
+  }
+};
+
+// ── Reset Report auth ──
+window.resetRptAuth = function() {
+  rptAuthVerified = false;
+  document.getElementById("rpt-emp").value = "";
+  document.getElementById("rpt-auth-ok").className = "auth-ok";
+  document.getElementById("rpt-auth-box").className = "auth-box";
+  document.getElementById("rpt-form-body").style.display = "none";
+  document.getElementById("submit-btn").disabled = true;
+};
+
 // ─── CHECK IN/OUT ───
 const getNow=()=>new Date().toTimeString().slice(0,5);
 
 window.updateCIDisplay = function() {
+  if(!ciAuthVerified) return; // ต้องยืนยันตัวตนก่อน
   const id=parseInt(document.getElementById("ci-emp").value);
   const att=attendance[id];
   const ciD=document.getElementById("ci-display");
@@ -589,20 +928,93 @@ function showFeedback(msg,type){
 }
 
 window.doCheckIn = async function(){
+  if(!ciAuthVerified) return;
   const id=parseInt(document.getElementById("ci-emp").value);
   if(!id) return;
   const t=getNow();
   await saveAttendance(id, {checkIn:t, checkOut:null, employeeId:id});
   showFeedback(`✅ Check In สำเร็จ! เวลา ${t}`,"in");
+  updateCIDisplay();
 };
 
 window.doCheckOut = async function(){
+  if(!ciAuthVerified) return;
   const id=parseInt(document.getElementById("ci-emp").value);
   if(!id||!attendance[id]) return;
   const t=getNow();
   await saveAttendance(id, {...attendance[id], checkOut:t});
   showFeedback(`🔵 Check Out สำเร็จ! เวลา ${t}`,"out");
+  updateCIDisplay();
 };
+
+// ─── FILE ATTACHMENT ───
+let attachedFiles = []; // [{ name, size, type, data(base64) }]
+
+const FILE_ICONS = { pdf:"📄", doc:"📝", docx:"📝", xls:"📊", xlsx:"📊" };
+function getFileIcon(name) {
+  const ext = name.split(".").pop().toLowerCase();
+  return FILE_ICONS[ext] || "📎";
+}
+function formatBytes(b) {
+  return b < 1024*1024 ? (b/1024).toFixed(0)+"KB" : (b/1024/1024).toFixed(1)+"MB";
+}
+
+window.handleFileSelect = function(files) {
+  Array.from(files).forEach(file => {
+    if (file.size > 1.2 * 1024 * 1024) {
+      alert(`❌ ไฟล์ "${file.name}" ใหญ่เกิน 1MB (${formatBytes(file.size)})`);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      attachedFiles.push({ name: file.name, size: file.size, type: file.type, data: e.target.result });
+      renderFilePreviews();
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById("file-input").value = "";
+};
+
+function renderFilePreviews() {
+  const list = document.getElementById("file-preview-list");
+  list.innerHTML = attachedFiles.map((f, i) => {
+    const isImage = f.type.startsWith("image/");
+    const thumb = isImage
+      ? `<img class="file-preview-thumb" src="${f.data}" alt="${f.name}"/>`
+      : `<div class="file-preview-icon">${getFileIcon(f.name)}</div>`;
+    return `<div class="file-preview-item">
+      ${thumb}
+      <span class="file-preview-name">${f.name}</span>
+      <span class="file-preview-size">${formatBytes(f.size)}</span>
+      <button class="file-preview-remove" onclick="removeFile(${i})" title="ลบ">✕</button>
+    </div>`;
+  }).join("");
+}
+
+window.removeFile = function(i) {
+  attachedFiles.splice(i, 1);
+  renderFilePreviews();
+};
+
+// Drag and drop
+const dropZone = document.getElementById("file-drop-zone");
+dropZone.addEventListener("dragover", e => { e.preventDefault(); dropZone.classList.add("dragover"); });
+dropZone.addEventListener("dragleave", () => dropZone.classList.remove("dragover"));
+dropZone.addEventListener("drop", e => {
+  e.preventDefault();
+  dropZone.classList.remove("dragover");
+  handleFileSelect(e.dataTransfer.files);
+});
+
+// ─── LIGHTBOX ───
+window.openLightbox = function(src) {
+  document.getElementById("lightbox-img").src = src;
+  document.getElementById("lightbox").classList.add("open");
+};
+window.closeLightbox = function() {
+  document.getElementById("lightbox").classList.remove("open");
+};
+document.addEventListener("keydown", e => { if(e.key==="Escape") closeLightbox(); });
 
 // ─── REPORT FORM ───
 window.updateAttInfo = function(){
@@ -628,6 +1040,7 @@ function selectStatus(s){
 }
 
 window.submitReport = async function(){
+  if(!rptAuthVerified) return;
   const empId=parseInt(document.getElementById("rpt-emp").value);
   if(!empId||selectedTasks.length===0) return;
   const emp=EMPLOYEES.find(e=>e.id===empId);
@@ -640,19 +1053,27 @@ window.submitReport = async function(){
     tasks:[...selectedTasks], status:currentStatus, note, progress,
     date:new Date().toISOString().slice(0,10),
     timestamp:new Date().toISOString(),
+    attachments: attachedFiles.map(f=>({ name:f.name, size:f.size, type:f.type, data:f.data })),
   };
   await saveReport(newReport);
   const alertEl=document.getElementById("success-alert");
   alertEl.style.display="block";
   setTimeout(()=>{alertEl.style.display="none";},2500);
-  // Reset
+  // Reset form
   document.getElementById("rpt-emp").value="";
   document.getElementById("rpt-note").value="";
   document.getElementById("prog-slider").value=50;
   document.getElementById("prog-label").textContent="50%";
   selectedTasks=[];
+  attachedFiles=[];
+  renderFilePreviews();
   document.querySelectorAll(".tag").forEach(t=>t.classList.remove("active"));
   selectStatus("ปกติ");
+  // Reset auth state
+  rptAuthVerified=false;
+  document.getElementById("rpt-auth-ok").className="auth-ok";
+  document.getElementById("rpt-form-body").style.display="none";
+  document.getElementById("submit-btn").disabled=true;
   updateAttInfo();
 };
 
@@ -663,6 +1084,16 @@ function renderReports(){
   grid.innerHTML=reports.map(r=>{
     const s=STATUSES[r.status]||STATUSES["ปกติ"];
     const bc=r.progress>=80?"#10b981":r.progress>=50?"#6366f1":"#f59e0b";
+    const attachHTML = (r.attachments&&r.attachments.length) ? `
+      <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">📎 ไฟล์แนบ (${r.attachments.length})</div>
+        <div class="attach-grid">
+          ${r.attachments.map(a => a.type&&a.type.startsWith("image/")
+            ? `<img class="attach-thumb" src="${a.data}" alt="${a.name}" onclick="openLightbox('${a.data}')" title="${a.name}"/>`
+            : `<a class="attach-file-chip" href="${a.data}" download="${a.name}" title="${formatBytes(a.size)}">${getFileIcon(a.name)} ${a.name}</a>`
+          ).join("")}
+        </div>
+      </div>` : "";
     return `<div class="report-card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
         <div style="display:flex;gap:12px;align-items:center">
@@ -681,12 +1112,374 @@ function renderReports(){
       <div style="font-size:12px;color:#94a3b8;margin-bottom:10px">🕐 ${r.checkIn} – ${r.checkOut}</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px">${r.tasks.map(t=>`<span class="badge" style="background:var(--surface2);color:var(--muted)">${t}</span>`).join("")}</div>
       ${r.note?`<div style="font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:10px;margin-top:10px">📝 ${r.note}</div>`:""}
+      ${attachHTML}
     </div>`;
   }).join("");
 }
 
 // ─── CUSTOM LINK ───
 window.joinCustom=function(){const l=document.getElementById("custom-link").value.trim();if(l)window.open(l,"_blank","noopener");};
+
+// ═══════════════════════════════════════════════════════════════
+// EMPLOYEE MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+
+function makeAvatar(name) {
+  const parts = name.trim().split(" ");
+  return parts.length >= 2 ? (parts[0][0]||"")+(parts[1][0]||"") : name.slice(0,2);
+}
+
+function rebuildDropdowns() {
+  ["ci-emp","rpt-emp"].forEach(id=>{
+    const sel=document.getElementById(id);
+    if(!sel) return;
+    const cur=sel.value;
+    sel.innerHTML=`<option value="">-- เลือกพนักงาน --</option>`;
+    EMPLOYEES.forEach(e=>{
+      const o=document.createElement("option");
+      o.value=e.id; o.textContent=e.name;
+      sel.appendChild(o);
+    });
+    sel.value=cur;
+  });
+}
+
+// ── Admin login ──
+window.checkAdmin = function() {
+  const val = document.getElementById("admin-id-input").value.trim();
+  if (val === ADMIN_ID) {
+    isAdminLoggedIn = true;
+    document.getElementById("admin-gate").style.display = "none";
+    document.getElementById("admin-content").style.display = "block";
+    renderEmpList();
+  } else {
+    document.getElementById("admin-err").style.display = "block";
+    setTimeout(()=>{ document.getElementById("admin-err").style.display="none"; }, 2500);
+  }
+};
+
+// ── Render emp list ──
+function renderEmpList() {
+  const el = document.getElementById("emp-list-container");
+  if (!el) return;
+  if (!EMPLOYEES.length) {
+    el.innerHTML=`<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">ยังไม่มีพนักงาน</div>`;
+    return;
+  }
+  el.innerHTML = EMPLOYEES.map(e=>`
+    <div class="emp-list-item" style="flex-direction:column;align-items:stretch;gap:8px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="emp-list-avatar">${e.avatar}</div>
+        <div class="emp-list-info">
+          <div class="emp-list-name">${e.name}</div>
+          <div class="emp-list-dept">
+            ${e.empCode?`<span style="color:#a78bfa;font-size:10px;font-family:'IBM Plex Mono',monospace">#${e.empCode}</span> · `:""}
+            ${e.position?e.position+" · ":""}${e.dept}
+          </div>
+        </div>
+        <button class="emp-delete-btn" onclick="deleteEmployee(${e.id})">🗑 ลบ</button>
+      </div>
+      <div class="emp-cred-row">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Username</div>
+            <div class="emp-cred-val">${e.username||"-"}</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Password</div>
+            <div class="emp-cred-val" style="display:flex;align-items:center;gap:6px">
+              <span id="pw-${e.id}" style="filter:blur(4px);transition:filter 0.2s">${e.password||"-"}</span>
+              <button onclick="togglePw(${e.id})" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px;padding:0">👁</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`).join("");
+}
+
+window.togglePw = function(id) {
+  const el = document.getElementById(`pw-${id}`);
+  if (!el) return;
+  el.style.filter = el.style.filter === "none" ? "blur(4px)" : "none";
+};
+
+window.openEmpModal = function() {
+  document.getElementById("emp-modal").classList.add("open");
+  if (!isAdminLoggedIn) {
+    document.getElementById("admin-gate").style.display = "block";
+    document.getElementById("admin-content").style.display = "none";
+  } else {
+    renderEmpList();
+  }
+};
+
+window.closeEmpModal = function() {
+  document.getElementById("emp-modal").classList.remove("open");
+  // reset form
+  ["new-emp-name","new-emp-code","new-emp-position","new-emp-user","new-emp-pass"].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value="";
+  });
+  const deptEl=document.getElementById("new-emp-dept");
+  if(deptEl) deptEl.value="กองบูรณาการคุณภาพน้ำ";
+  const btn=document.getElementById("emp-add-btn"); if(btn) btn.disabled=true;
+};
+
+window.validateEmpForm = function() {
+  const name=document.getElementById("new-emp-name")?.value.trim();
+  const code=document.getElementById("new-emp-code")?.value.trim();
+  const user=document.getElementById("new-emp-user")?.value.trim();
+  const pass=document.getElementById("new-emp-pass")?.value.trim();
+  const btn=document.getElementById("emp-add-btn");
+  if(btn) btn.disabled = !(name&&name.length>=2&&code&&user&&pass);
+};
+
+window.addEmployee = async function() {
+  const name=document.getElementById("new-emp-name").value.trim();
+  const empCode=document.getElementById("new-emp-code").value.trim();
+  const position=document.getElementById("new-emp-position").value.trim();
+  const dept=document.getElementById("new-emp-dept").value.trim()||"กองบูรณาการคุณภาพน้ำ";
+  const username=document.getElementById("new-emp-user").value.trim();
+  const password=document.getElementById("new-emp-pass").value.trim();
+  if(!name||!empCode||!username||!password) return;
+  const newId = EMPLOYEES.length ? Math.max(...EMPLOYEES.map(e=>e.id))+1 : 1;
+  const avatar = makeAvatar(name);
+  const newEmp = { id:newId, name, dept, avatar, empCode, position, username, password };
+  await set(ref(db,`employees/${newId}`), newEmp);
+  ["new-emp-name","new-emp-code","new-emp-position","new-emp-user","new-emp-pass"].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value="";
+  });
+  document.getElementById("emp-add-btn").disabled=true;
+};
+
+window.deleteEmployee = async function(id) {
+  const emp=EMPLOYEES.find(e=>e.id===id);
+  if(!emp) return;
+  if(!confirm(`ลบ "${emp.name}" ออกจากระบบ?\n(รายงานที่บันทึกไว้จะยังอยู่)`)) return;
+  await remove(ref(db,`employees/${id}`));
+};
+
+// ═══════════════════════════════════════════════════════════════
+// SUMMARY TAB — ดูรายงานย้อนหลังแต่ละวัน
+// ═══════════════════════════════════════════════════════════════
+let summaryCurrentDate = new Date();    // วันที่ที่กำลังดูอยู่
+let summaryCache = {};                  // cache: { "20250415": { reports, attendance } }
+
+// แปลง Date → key เหมือน todayKey()
+const dateToKey = (d) => d.toISOString().slice(0,10).replace(/-/g,"");
+const keyToDate = (k) => new Date(`${k.slice(0,4)}-${k.slice(4,6)}-${k.slice(6,8)}`);
+
+// ── เริ่มต้น Summary tab ──
+function initSummary() {
+  // set picker เป็นวันนี้ถ้ายังไม่เคยตั้ง
+  const picker = document.getElementById("summary-date-picker");
+  if (!picker.value) {
+    picker.value = new Date().toISOString().slice(0,10);
+    summaryCurrentDate = new Date();
+  }
+  renderSummaryDateLabel();
+  loadSummaryForDate(summaryCurrentDate);
+}
+
+// ── เปลี่ยนวัน ──
+window.changeDay = function(delta) {
+  summaryCurrentDate.setDate(summaryCurrentDate.getDate() + delta);
+  document.getElementById("summary-date-picker").value = summaryCurrentDate.toISOString().slice(0,10);
+  renderSummaryDateLabel();
+  loadSummaryForDate(summaryCurrentDate);
+};
+
+window.goToday = function() {
+  summaryCurrentDate = new Date();
+  document.getElementById("summary-date-picker").value = summaryCurrentDate.toISOString().slice(0,10);
+  renderSummaryDateLabel();
+  loadSummaryForDate(summaryCurrentDate);
+};
+
+window.loadSummaryDate = function(val) {
+  if (!val) return;
+  summaryCurrentDate = new Date(val + "T00:00:00");
+  renderSummaryDateLabel();
+  loadSummaryForDate(summaryCurrentDate);
+};
+
+function renderSummaryDateLabel() {
+  const label = document.getElementById("summary-date-label");
+  const isToday = summaryCurrentDate.toDateString() === new Date().toDateString();
+  const thDate = summaryCurrentDate.toLocaleDateString("th-TH",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  label.textContent = isToday ? `${thDate} (วันนี้)` : thDate;
+  // ปุ่มถัดไป disable ถ้าเป็นวันนี้
+  document.getElementById("btn-next-day").disabled = isToday;
+}
+
+// ── โหลดข้อมูลจาก Firebase ──
+function loadSummaryForDate(date) {
+  const key = dateToKey(date);
+  document.getElementById("summary-cards").innerHTML = `<div class="summary-empty">⏳ กำลังโหลด...</div>`;
+  document.getElementById("summary-overview").innerHTML = "";
+
+  // ถ้ามี cache ใช้เลย
+  if (summaryCache[key]) {
+    renderSummaryContent(summaryCache[key]);
+    return;
+  }
+
+  // ดึงจาก Firebase
+  let rpts = [], atts = {};
+  let loadedCount = 0;
+
+  onValue(ref(db, `reports/${key}`), snap => {
+    if (snap.exists()) {
+      const raw = snap.val();
+      rpts = Object.entries(raw).map(([fbKey, v]) => ({
+        ...v, fbKey,
+        employee: EMPLOYEES.find(e => e.id === v.employeeId) || { name:"?", dept:"?", avatar:"?" },
+      })).sort((a,b) => b.id - a.id);
+    } else {
+      rpts = [];
+    }
+    loadedCount++;
+    if (loadedCount >= 2) {
+      summaryCache[key] = { reports: rpts, attendance: atts };
+      renderSummaryContent(summaryCache[key]);
+    }
+  }, { onlyOnce: true });
+
+  onValue(ref(db, `attendance/${key}`), snap => {
+    atts = snap.exists() ? snap.val() : {};
+    loadedCount++;
+    if (loadedCount >= 2) {
+      summaryCache[key] = { reports: rpts, attendance: atts };
+      renderSummaryContent(summaryCache[key]);
+    }
+  }, { onlyOnce: true });
+}
+
+// ── Render ──
+function renderSummaryContent({ reports: rpts, attendance: atts }) {
+  // Overview stats
+  const avgProg = rpts.length ? Math.round(rpts.reduce((a,r)=>a+r.progress,0)/rpts.length) : 0;
+  const done = rpts.filter(r=>r.status==="เสร็จสิ้น").length;
+  const stuck = rpts.filter(r=>r.status==="ติดขัด").length;
+  const checkedIn = Object.values(atts).filter(a=>a.checkIn).length;
+
+  document.getElementById("summary-overview").innerHTML = [
+    { label:"รายงานทั้งหมด", value:rpts.length, color:"#6366f1", icon:"📋" },
+    { label:"เข้างานวันนี้",   value:checkedIn,  color:"#10b981", icon:"🟢" },
+    { label:"เฉลี่ย Progress", value:avgProg+"%",color:"#a78bfa", icon:"📈" },
+    { label:"เสร็จสิ้น",       value:done,       color:"#3b82f6", icon:"✅" },
+  ].map(s=>`
+    <div class="stat-card">
+      <div class="stat-icon">${s.icon}</div>
+      <div class="stat-value" style="color:${s.color}">${s.value}</div>
+      <div class="stat-label">${s.label}</div>
+    </div>`).join("");
+
+  if (!rpts.length) {
+    document.getElementById("summary-cards").innerHTML = `<div class="summary-empty">📭 ไม่มีรายงานในวันนี้</div>`;
+    return;
+  }
+
+  // Group by employee
+  const byEmp = {};
+  EMPLOYEES.forEach(e => { byEmp[e.id] = { emp: e, reports: [], att: atts[e.id] || null }; });
+  rpts.forEach(r => { if(byEmp[r.employeeId]) byEmp[r.employeeId].reports.push(r); });
+
+  document.getElementById("summary-cards").innerHTML = Object.values(byEmp)
+    .filter(g => g.reports.length > 0)
+    .map((g, gi) => {
+      const avgP = Math.round(g.reports.reduce((a,r)=>a+r.progress,0)/g.reports.length);
+      const statusCounts = {};
+      g.reports.forEach(r => { statusCounts[r.status] = (statusCounts[r.status]||0)+1; });
+      const allTasks = [...new Set(g.reports.flatMap(r=>r.tasks))];
+      const bc = avgP>=80?"#10b981":avgP>=50?"#6366f1":"#f59e0b";
+      const attLabel = g.att ? (g.att.checkOut ? `${g.att.checkIn} – ${g.att.checkOut}` : `เข้างาน ${g.att.checkIn}`) : "ไม่มีข้อมูล";
+      const attColor = g.att ? (g.att.checkOut ? "#3b82f6" : "#10b981") : "var(--muted)";
+      const hasAttach = g.reports.some(r=>r.attachments&&r.attachments.length>0);
+
+      return `
+      <div class="summary-emp-card">
+        <div class="summary-emp-header" onclick="toggleSummaryCard(${gi})">
+          <div class="avatar" style="width:44px;height:44px;border-radius:12px;font-size:14px">${g.emp.avatar}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:15px;font-weight:700">${g.emp.name}</div>
+            <div style="font-size:11px;color:${attColor};margin-top:2px">🕐 ${attLabel}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;margin-right:12px">
+            <div style="font-size:22px;font-weight:800;color:${bc}">${avgP}%</div>
+            <div style="font-size:10px;color:var(--muted)">${g.reports.length} รายงาน</div>
+          </div>
+          <span class="chevron" id="chevron-${gi}">▶</span>
+        </div>
+        <div class="summary-emp-body" id="summary-body-${gi}" style="display:none">
+          <!-- Stats row -->
+          <div class="summary-stat-row" style="margin-top:14px">
+            <div class="summary-stat-box">
+              <div class="val" style="color:#6366f1">${g.reports.length}</div>
+              <div class="lbl">รายงาน</div>
+            </div>
+            <div class="summary-stat-box">
+              <div class="val" style="color:#10b981">${statusCounts["เสร็จสิ้น"]||0}</div>
+              <div class="lbl">เสร็จสิ้น</div>
+            </div>
+            <div class="summary-stat-box">
+              <div class="val" style="color:#f59e0b">${statusCounts["ติดขัด"]||0}</div>
+              <div class="lbl">ติดขัด</div>
+            </div>
+          </div>
+
+          <!-- Progress bar -->
+          <div style="margin-bottom:14px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px">
+              <span>ความคืบหน้าเฉลี่ย</span><span style="font-weight:700;color:${bc}">${avgP}%</span>
+            </div>
+            <div class="pbar-wrap"><div class="pbar" style="width:${avgP}%;background:${bc}"></div></div>
+          </div>
+
+          <!-- Tasks -->
+          <div style="margin-bottom:14px">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">งานที่ทำ</div>
+            <div>${allTasks.map(t=>`<span class="summary-task-badge">${t}</span>`).join("")}</div>
+          </div>
+
+          <!-- Individual reports -->
+          ${g.reports.map((r,ri) => {
+            const s = STATUSES[r.status]||STATUSES["ปกติ"];
+            const attachCount = r.attachments?.length||0;
+            return `
+            <div style="background:#0b0f1a;border-radius:10px;padding:12px;margin-bottom:8px;border:1px solid var(--border);">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <span style="font-size:12px;color:var(--muted)">🕐 ${r.checkIn} – ${r.checkOut}</span>
+                <div style="display:flex;gap:6px;align-items:center">
+                  ${attachCount?`<span style="font-size:11px;color:var(--muted)">📎${attachCount}</span>`:""}
+                  <span class="badge" style="background:${s.bg};color:${s.color}">${r.status}</span>
+                  <span style="font-size:13px;font-weight:700;color:#a78bfa">${r.progress}%</span>
+                </div>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:${r.note?'8px':'0'}">
+                ${r.tasks.map(t=>`<span style="padding:2px 8px;border-radius:12px;font-size:10px;background:var(--surface2);color:var(--muted)">${t}</span>`).join("")}
+              </div>
+              ${r.note?`<div style="font-size:11px;color:var(--muted);padding-top:6px;border-top:1px solid var(--border)">📝 ${r.note}</div>`:""}
+              ${attachCount?`
+                <div class="summary-attach-row">
+                  ${r.attachments.map(a=>a.type&&a.type.startsWith("image/")
+                    ?`<img class="attach-thumb" src="${a.data}" onclick="openLightbox('${a.data}')" style="width:48px;height:48px"/>`
+                    :`<a class="attach-file-chip" href="${a.data}" download="${a.name}">${getFileIcon(a.name)} ${a.name}</a>`
+                  ).join("")}
+                </div>`:""}
+            </div>`;
+          }).join("")}
+        </div>
+      </div>`;
+    }).join("") || `<div class="summary-empty">📭 ไม่มีรายงานในวันนี้</div>`;
+}
+
+window.toggleSummaryCard = function(i) {
+  const body = document.getElementById(`summary-body-${i}`);
+  const chev = document.getElementById(`chevron-${i}`);
+  const isOpen = body.style.display !== "none";
+  body.style.display = isOpen ? "none" : "block";
+  chev.classList.toggle("open", !isOpen);
+};
 
 // ─── START ───
 initUI();
