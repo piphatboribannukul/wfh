@@ -216,7 +216,27 @@
   .summary-empty{text-align:center;color:var(--muted);padding:60px 0;font-size:14px;}
   .summary-overview{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
 
-  /* ADMIN LOGIN */
+  /* LOGIN SCREEN */
+  .login-screen{position:fixed;inset:0;background:var(--bg);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .login-box{background:var(--surface);border-radius:24px;border:1px solid var(--border);padding:40px 36px;width:min(420px,100%);box-shadow:0 24px 80px rgba(0,0,0,.5);}
+  .login-logo{display:flex;align-items:center;gap:14px;margin-bottom:28px;justify-content:center;}
+  .login-logo-icon{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:24px;}
+  .login-title{font-size:18px;font-weight:800;}
+  .login-sub{font-size:12px;color:var(--muted);}
+  .login-field{margin-bottom:14px;}
+  .login-label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px;}
+  .login-input{width:100%;padding:12px 16px;border-radius:10px;background:#0b0f1a;border:1px solid var(--border);color:var(--text);font-family:'Sarabun',sans-serif;font-size:15px;transition:border 0.2s;}
+  .login-input:focus{outline:none;border-color:var(--accent);}
+  .login-btn{width:100%;padding:14px;border-radius:12px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-family:'Sarabun',sans-serif;font-size:16px;font-weight:700;margin-top:6px;transition:all 0.2s;}
+  .login-btn:hover:not(:disabled){filter:brightness(1.1);}
+  .login-btn:disabled{opacity:0.6;cursor:not-allowed;}
+  .login-err{background:#450a0a;border:1px solid #ef4444;border-radius:8px;padding:10px 14px;font-size:13px;color:#fca5a5;margin-top:12px;display:none;}
+  .login-spinner{display:none;text-align:center;padding:8px 0;font-size:13px;color:var(--muted);}
+  .user-chip{display:flex;align-items:center;gap:8px;padding:4px 10px 4px 4px;background:var(--surface2);border-radius:20px;border:1px solid var(--border);}
+  .user-chip-avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+  .user-chip-name{font-size:12px;font-weight:600;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .logout-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px;padding:0 2px;transition:color 0.2s;}
+  .logout-btn:hover{color:#ef4444;}
   .admin-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#fef3c7;color:#92400e;}
   .emp-cred-row{background:#0b0f1a;border-radius:8px;padding:10px 12px;margin-top:6px;font-size:12px;color:var(--muted);}
   .emp-cred-val{font-family:'IBM Plex Mono',monospace;color:var(--text);font-size:12px;}
@@ -244,8 +264,35 @@
 </head>
 <body>
 
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">💧</div>
+      <div>
+        <div class="login-title">กองบูรณาการคุณภาพน้ำ</div>
+        <div class="login-sub">ฝ่ายคุณภาพน้ำ · ระบบ WFH</div>
+      </div>
+    </div>
+    <div class="login-field">
+      <label class="login-label">อีเมล</label>
+      <input class="login-input" id="login-email" type="email" placeholder="email@wqa.go.th" autocomplete="email" onkeydown="if(event.key==='Enter')document.getElementById('login-pass').focus()"/>
+    </div>
+    <div class="login-field">
+      <label class="login-label">รหัสผ่าน</label>
+      <input class="login-input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <div class="login-spinner" id="login-spinner">⏳ กำลังเข้าสู่ระบบ...</div>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
 <!-- LOADING -->
 <div class="loading-overlay" id="loading">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">กำลังเชื่อมต่อ Firebase...</div>
+</div>
   <div class="loading-spinner"></div>
   <div class="loading-text">กำลังเชื่อมต่อ Firebase...</div>
 </div>
@@ -266,6 +313,11 @@
     <button class="nav-btn" onclick="showTab('summary')">สรุปรายงาน</button>
     <button class="nav-btn" onclick="showTab('form')">บันทึก</button>
     <button onclick="openEmpModal()" style="padding:8px 16px;border-radius:8px;border:1px solid var(--border);cursor:pointer;background:var(--surface2);color:var(--muted);font-family:'Sarabun',sans-serif;font-size:13px;transition:all 0.2s;white-space:nowrap;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">👤 จัดการพนักงาน</button>
+    <div class="user-chip" id="user-chip" style="display:none">
+      <div class="user-chip-avatar" id="user-avatar">?</div>
+      <span class="user-chip-name" id="user-name">—</span>
+      <button class="logout-btn" onclick="doLogout()" title="ออกจากระบบ">✕</button>
+    </div>
   </nav>
 </div>
 
@@ -356,21 +408,9 @@
           <select class="form-select" id="ci-emp" onchange="onCiEmpChange()">
             <option value="">-- เลือกพนักงาน --</option>
           </select>
-        </div>
-
-        <!-- Auth box for check in/out -->
-        <div class="auth-box" id="ci-auth-box">
-          <div class="auth-box-title">🔐 ยืนยันตัวตน — กรอก Username / Password ของคุณ</div>
-          <div class="auth-input-row">
-            <input class="auth-input" id="ci-username" placeholder="Username" autocomplete="username"/>
-            <input class="auth-input" id="ci-password" placeholder="Password" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')verifyCIAuth()"/>
+          <div id="ci-not-me" style="display:none;font-size:12px;color:#f59e0b;margin-top:6px;padding:8px 12px;background:#1c1200;border-radius:8px;border:1px solid #78350f">
+            ⚠️ คุณกำลังบันทึกในนามพนักงานคนอื่น — ระบบจะบันทึก log ไว้
           </div>
-          <button class="auth-btn" onclick="verifyCIAuth()">ยืนยันตัวตน</button>
-          <div class="auth-err" id="ci-auth-err">Username หรือ Password ไม่ถูกต้อง</div>
-        </div>
-        <div class="auth-ok" id="ci-auth-ok">
-          <span>✅ ยืนยันตัวตนสำเร็จ</span>
-          <button class="auth-logout" onclick="resetCIAuth()">เปลี่ยนผู้ใช้</button>
         </div>
         <div class="time-display">
           <div class="time-box">
@@ -407,24 +447,12 @@
           <select class="form-select" id="rpt-emp" onchange="onRptEmpChange()">
             <option value="">-- เลือกพนักงาน --</option>
           </select>
-        </div>
-
-        <!-- Auth box for report -->
-        <div class="auth-box" id="rpt-auth-box">
-          <div class="auth-box-title">🔐 ยืนยันตัวตน — กรอก Username / Password ของคุณ</div>
-          <div class="auth-input-row">
-            <input class="auth-input" id="rpt-username" placeholder="Username" autocomplete="username"/>
-            <input class="auth-input" id="rpt-password" placeholder="Password" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')verifyRptAuth()"/>
+          <div id="rpt-not-me" style="display:none;font-size:12px;color:#f59e0b;margin-top:6px;padding:8px 12px;background:#1c1200;border-radius:8px;border:1px solid #78350f">
+            ⚠️ คุณกำลังบันทึกในนามพนักงานคนอื่น — ระบบจะบันทึก log ไว้
           </div>
-          <button class="auth-btn" onclick="verifyRptAuth()">ยืนยันตัวตน</button>
-          <div class="auth-err" id="rpt-auth-err">Username หรือ Password ไม่ถูกต้อง</div>
-        </div>
-        <div class="auth-ok" id="rpt-auth-ok">
-          <span>✅ ยืนยันตัวตนสำเร็จ</span>
-          <button class="auth-logout" onclick="resetRptAuth()">เปลี่ยนผู้ใช้</button>
         </div>
 
-        <div id="rpt-form-body" style="display:none">
+        <div id="rpt-form-body">
         <div id="rpt-form-body" style="display:none">
         <div class="att-info-box" id="att-info-box"></div>
         <div class="form-group">
@@ -503,8 +531,8 @@
             <input class="emp-add-input" id="new-emp-dept" placeholder="แผนก" value="กองบูรณาการคุณภาพน้ำ"/>
           </div>
           <div class="emp-add-row" style="grid-template-columns:1fr 1fr">
-            <input class="emp-add-input" id="new-emp-user" placeholder="Username *" oninput="validateEmpForm()"/>
-            <input class="emp-add-input" id="new-emp-pass" placeholder="Password *" type="password" oninput="validateEmpForm()"/>
+            <input class="emp-add-input" id="new-emp-user" placeholder="Email (ใช้ login) *" type="email" oninput="validateEmpForm()"/>
+            <input class="emp-add-input" id="new-emp-pass" placeholder="(รหัสผ่านตั้งใน Firebase)" disabled style="opacity:0.5"/>
           </div>
           <button class="emp-add-btn" id="emp-add-btn" onclick="addEmployee()" disabled>เพิ่มพนักงาน</button>
         </div>
@@ -535,6 +563,14 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  browserLocalPersistence,
+  setPersistence
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // ── Firebase Config ──
 const firebaseConfig = {
@@ -549,16 +585,112 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const db  = getDatabase(app);
+const auth = getAuth(app);
 
-// ── Employees — โหลดจาก Firebase (fallback เริ่มต้น 3 คน) ──
+// ── Current logged-in user ──
+let currentUser = null;       // Firebase user object
+let currentEmployee = null;   // matched EMPLOYEE record
+
+// ─── LOGIN / LOGOUT ───
+window.doLogin = async function() {
+  const email = document.getElementById("login-email").value.trim();
+  const pass  = document.getElementById("login-pass").value;
+  if (!email || !pass) return;
+  const btn = document.getElementById("login-btn");
+  const spinner = document.getElementById("login-spinner");
+  const err = document.getElementById("login-err");
+  btn.disabled = true;
+  spinner.style.display = "block";
+  err.style.display = "none";
+  try {
+    await setPersistence(auth, browserLocalPersistence);
+    await signInWithEmailAndPassword(auth, email, pass);
+    // onAuthStateChanged จะจัดการต่อ
+  } catch(e) {
+    const msgs = {
+      "auth/user-not-found":    "ไม่พบบัญชีนี้ในระบบ",
+      "auth/wrong-password":    "รหัสผ่านไม่ถูกต้อง",
+      "auth/invalid-credential":"อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+      "auth/too-many-requests": "ลองใหม่อีกครั้งในภายหลัง (พยายามมากเกินไป)",
+      "auth/invalid-email":     "รูปแบบอีเมลไม่ถูกต้อง",
+    };
+    err.textContent = msgs[e.code] || `เข้าสู่ระบบไม่สำเร็จ (${e.code})`;
+    err.style.display = "block";
+    btn.disabled = false;
+    spinner.style.display = "none";
+  }
+};
+
+window.doLogout = async function() {
+  if (!confirm("ออกจากระบบ?")) return;
+  await signOut(auth);
+};
+
+// ── Auth state listener ──
+onAuthStateChanged(auth, user => {
+  if (user) {
+    // Login สำเร็จ
+    currentUser = user;
+    document.getElementById("login-screen").style.display = "none";
+    document.getElementById("login-btn").disabled = false;
+    document.getElementById("login-spinner").style.display = "none";
+    // ต้องรอ EMPLOYEES โหลดก่อน ถึงจะหา employee ได้
+    matchCurrentEmployee();
+    listenFirebase();
+  } else {
+    // Logout
+    currentUser = null;
+    currentEmployee = null;
+    document.getElementById("login-screen").style.display = "flex";
+    document.getElementById("login-email").value = "";
+    document.getElementById("login-pass").value = "";
+    document.getElementById("login-err").style.display = "none";
+    updateUserChip();
+  }
+});
+
+function matchCurrentEmployee() {
+  if (!currentUser || !EMPLOYEES.length) return;
+  // จับคู่ Firebase email กับ email ที่เก็บใน EMPLOYEES
+  currentEmployee = EMPLOYEES.find(e =>
+    e.email && e.email.toLowerCase() === currentUser.email.toLowerCase()
+  ) || null;
+  updateUserChip();
+  // Auto-fill ชื่อพนักงานใน dropdown
+  if (currentEmployee) {
+    const ciEmp = document.getElementById("ci-emp");
+    const rptEmp = document.getElementById("rpt-emp");
+    if (ciEmp && !ciEmp.value) { ciEmp.value = currentEmployee.id; onCiEmpChange(); ciAuthVerified=true; updateCIDisplay(); }
+    if (rptEmp && !rptEmp.value) { rptEmp.value = currentEmployee.id; onRptEmpChange(); rptAuthVerified=true;
+      document.getElementById("rpt-form-body").style.display="block";
+      document.getElementById("rpt-auth-ok").className="auth-ok show";
+      document.getElementById("rpt-auth-box").className="auth-box";
+      document.getElementById("submit-btn").disabled=false;
+      updateAttInfo();
+    }
+  }
+}
+
+function updateUserChip() {
+  const chip = document.getElementById("user-chip");
+  const nameEl = document.getElementById("user-name");
+  const avatarEl = document.getElementById("user-avatar");
+  if (!currentUser) { chip.style.display="none"; return; }
+  chip.style.display = "flex";
+  const emp = currentEmployee;
+  nameEl.textContent = emp ? emp.name.split(" ")[0] : currentUser.email;
+  avatarEl.textContent = emp ? emp.avatar : "👤";
+}
+
+// ── Employees — โหลดจาก Firebase ──
 let EMPLOYEES = [];
 const DEFAULT_EMPLOYEES = [
-  { id:1, name:"นายเฉลิมเกียรติ ทับทิมศรี",  dept:"กองบูรณาการคุณภาพน้ำ", avatar:"ฉก", empCode:"001", position:"นักวิทยาศาสตร์", username:"chalermkiat", password:"1234" },
-  { id:2, name:"นายพิพัฒน์ บริบาลนุกูล",    dept:"กองบูรณาการคุณภาพน้ำ", avatar:"พพ", empCode:"002", position:"นักวิทยาศาสตร์", username:"piphat", password:"1234" },
-  { id:3, name:"นางสาวธิติมา แสงประภากร",   dept:"กองบูรณาการคุณภาพน้ำ", avatar:"ธต", empCode:"003", position:"นักวิทยาศาสตร์", username:"thitima", password:"1234" },
+  { id:1, name:"นายเฉลิมเกียรติ ทับทิมศรี",  dept:"กองบูรณาการคุณภาพน้ำ", avatar:"ฉก", empCode:"001", position:"นักวิทยาศาสตร์", email:"chalermkiat@wqa.go.th" },
+  { id:2, name:"นายพิพัฒน์ บริบาลนุกูล",    dept:"กองบูรณาการคุณภาพน้ำ", avatar:"พพ", empCode:"002", position:"นักวิทยาศาสตร์", email:"piphat@wqa.go.th" },
+  { id:3, name:"นางสาวธิติมา แสงประภากร",   dept:"กองบูรณาการคุณภาพน้ำ", avatar:"ธต", empCode:"003", position:"นักวิทยาศาสตร์", email:"thitima@wqa.go.th" },
 ];
-const ADMIN_ID = "admin1234"; // ← เปลี่ยน Admin ID ได้ตรงนี้
+const ADMIN_ID = "admin1234";
 let isAdminLoggedIn = false;
 const TASKS = ["ประชุมทีม","พัฒนา Feature","รีวิวโค้ด","เขียนเอกสาร","ดูแล Bug","วางแผนโปรเจกต์","ฝึกอบรม","ติดต่อลูกค้า"];
 const STATUSES = {
@@ -603,16 +735,15 @@ function listenFirebase() {
       EMPLOYEES = Object.entries(snap.val()).map(([fbKey, v]) => ({ ...v, fbKey }));
       EMPLOYEES.sort((a,b) => a.id - b.id);
     } else {
-      // ครั้งแรก: seed DEFAULT_EMPLOYEES เข้า Firebase
       EMPLOYEES = DEFAULT_EMPLOYEES;
       DEFAULT_EMPLOYEES.forEach(e => {
-        set(ref(db, `employees/${e.id}`), { id:e.id, name:e.name, dept:e.dept, avatar:e.avatar });
+        set(ref(db, `employees/${e.id}`), { id:e.id, name:e.name, dept:e.dept, avatar:e.avatar, empCode:e.empCode, position:e.position, email:e.email });
       });
     }
-    // อัปเดต dropdowns และ dashboard
     rebuildDropdowns();
     renderDashboard();
     renderEmpList();
+    matchCurrentEmployee(); // จับคู่ user หลัง EMPLOYEES โหลด
   });
 
   // Attendance
@@ -640,7 +771,7 @@ function listenFirebase() {
     // Hide loading
     document.getElementById("loading").classList.add("hidden");
     dbReady = true;
-    document.getElementById("submit-btn").disabled = false;
+    document.getElementById("submit-btn").disabled = true; // enabled only when emp selected
   }, err => {
     setSyncStatus("error", "เชื่อมต่อไม่ได้: "+err.message);
     document.getElementById("loading").classList.add("hidden");
@@ -795,113 +926,38 @@ function renderProgressList() {
   }).join("");
 }
 
-// ─── AUTH STATE ───
-let ciAuthVerified = false;   // Check In/Out ยืนยันแล้วไหม
-let rptAuthVerified = false;  // Report form ยืนยันแล้วไหม
+// ─── AUTH STATE (Firebase Auth handles this now) ───
+let ciAuthVerified = true;
+let rptAuthVerified = true;
 
-// ── เมื่อเลือกพนักงานใน Check In/Out ──
 window.onCiEmpChange = function() {
-  ciAuthVerified = false;
   const id = parseInt(document.getElementById("ci-emp").value);
-  // reset auth UI
-  document.getElementById("ci-auth-box").className = id ? "auth-box show" : "auth-box";
-  document.getElementById("ci-auth-ok").className = "auth-ok";
-  document.getElementById("ci-username").value = "";
-  document.getElementById("ci-password").value = "";
-  document.getElementById("ci-auth-err").style.display = "none";
-  // reset time display & buttons
-  const ciD=document.getElementById("ci-display");
-  const coD=document.getElementById("co-display");
-  const stD=document.getElementById("ci-status");
-  ciD.textContent="--:--"; ciD.style.color="#2d3f5a";
-  coD.textContent="--:--"; coD.style.color="#2d3f5a";
-  stD.textContent="ยังไม่เข้างาน"; stD.style.color="var(--muted)";
-  document.getElementById("btn-checkin").disabled=true;
-  document.getElementById("btn-checkout").disabled=true;
-};
-
-// ── ยืนยันตัวตน Check In/Out ──
-window.verifyCIAuth = function() {
-  const id = parseInt(document.getElementById("ci-emp").value);
-  const emp = EMPLOYEES.find(e=>e.id===id);
-  if(!emp) return;
-  const u = document.getElementById("ci-username").value.trim();
-  const p = document.getElementById("ci-password").value.trim();
-  if(u===emp.username && p===emp.password) {
-    ciAuthVerified = true;
-    document.getElementById("ci-auth-box").className = "auth-box";
-    document.getElementById("ci-auth-ok").className = "auth-ok show";
-    updateCIDisplay();
+  const notMe = document.getElementById("ci-not-me");
+  if (currentEmployee && id && id !== currentEmployee.id) {
+    notMe.style.display = "block";
   } else {
-    const err = document.getElementById("ci-auth-err");
-    err.style.display = "block";
-    setTimeout(()=>{ err.style.display="none"; }, 2500);
+    notMe.style.display = "none";
   }
+  updateCIDisplay();
 };
 
-// ── Reset Check In/Out auth ──
-window.resetCIAuth = function() {
-  ciAuthVerified = false;
-  document.getElementById("ci-emp").value = "";
-  document.getElementById("ci-auth-ok").className = "auth-ok";
-  document.getElementById("ci-auth-box").className = "auth-box";
-  document.getElementById("ci-display").textContent="--:--";
-  document.getElementById("co-display").textContent="--:--";
-  document.getElementById("ci-status").textContent="ยังไม่เข้างาน";
-  document.getElementById("btn-checkin").disabled=true;
-  document.getElementById("btn-checkout").disabled=true;
-};
-
-// ── เมื่อเลือกพนักงานใน Report Form ──
 window.onRptEmpChange = function() {
-  rptAuthVerified = false;
   const id = parseInt(document.getElementById("rpt-emp").value);
-  document.getElementById("rpt-auth-box").className = id ? "auth-box show" : "auth-box";
-  document.getElementById("rpt-auth-ok").className = "auth-ok";
-  document.getElementById("rpt-form-body").style.display = "none";
-  document.getElementById("rpt-username").value = "";
-  document.getElementById("rpt-password").value = "";
-  document.getElementById("rpt-auth-err").style.display = "none";
-  document.getElementById("submit-btn").disabled = true;
-  document.getElementById("att-info-box").style.display = "none";
-};
-
-// ── ยืนยันตัวตน Report ──
-window.verifyRptAuth = function() {
-  const id = parseInt(document.getElementById("rpt-emp").value);
-  const emp = EMPLOYEES.find(e=>e.id===id);
-  if(!emp) return;
-  const u = document.getElementById("rpt-username").value.trim();
-  const p = document.getElementById("rpt-password").value.trim();
-  if(u===emp.username && p===emp.password) {
-    rptAuthVerified = true;
-    document.getElementById("rpt-auth-box").className = "auth-box";
-    document.getElementById("rpt-auth-ok").className = "auth-ok show";
-    document.getElementById("rpt-form-body").style.display = "block";
-    document.getElementById("submit-btn").disabled = false;
-    updateAttInfo();
+  const notMe = document.getElementById("rpt-not-me");
+  if (currentEmployee && id && id !== currentEmployee.id) {
+    notMe.style.display = "block";
   } else {
-    const err = document.getElementById("rpt-auth-err");
-    err.style.display = "block";
-    setTimeout(()=>{ err.style.display="none"; }, 2500);
+    notMe.style.display = "none";
   }
-};
-
-// ── Reset Report auth ──
-window.resetRptAuth = function() {
-  rptAuthVerified = false;
-  document.getElementById("rpt-emp").value = "";
-  document.getElementById("rpt-auth-ok").className = "auth-ok";
-  document.getElementById("rpt-auth-box").className = "auth-box";
-  document.getElementById("rpt-form-body").style.display = "none";
-  document.getElementById("submit-btn").disabled = true;
+  document.getElementById("rpt-form-body").style.display = id ? "block" : "none";
+  document.getElementById("submit-btn").disabled = !id;
+  updateAttInfo();
 };
 
 // ─── CHECK IN/OUT ───
 const getNow=()=>new Date().toTimeString().slice(0,5);
 
 window.updateCIDisplay = function() {
-  if(!ciAuthVerified) return; // ต้องยืนยันตัวตนก่อน
   const id=parseInt(document.getElementById("ci-emp").value);
   const att=attendance[id];
   const ciD=document.getElementById("ci-display");
@@ -928,7 +984,6 @@ function showFeedback(msg,type){
 }
 
 window.doCheckIn = async function(){
-  if(!ciAuthVerified) return;
   const id=parseInt(document.getElementById("ci-emp").value);
   if(!id) return;
   const t=getNow();
@@ -938,7 +993,6 @@ window.doCheckIn = async function(){
 };
 
 window.doCheckOut = async function(){
-  if(!ciAuthVerified) return;
   const id=parseInt(document.getElementById("ci-emp").value);
   if(!id||!attendance[id]) return;
   const t=getNow();
@@ -1040,7 +1094,6 @@ function selectStatus(s){
 }
 
 window.submitReport = async function(){
-  if(!rptAuthVerified) return;
   const empId=parseInt(document.getElementById("rpt-emp").value);
   if(!empId||selectedTasks.length===0) return;
   const emp=EMPLOYEES.find(e=>e.id===empId);
@@ -1053,6 +1106,7 @@ window.submitReport = async function(){
     tasks:[...selectedTasks], status:currentStatus, note, progress,
     date:new Date().toISOString().slice(0,10),
     timestamp:new Date().toISOString(),
+    submittedBy: currentUser?.email || "unknown",
     attachments: attachedFiles.map(f=>({ name:f.name, size:f.size, type:f.type, data:f.data })),
   };
   await saveReport(newReport);
@@ -1064,16 +1118,13 @@ window.submitReport = async function(){
   document.getElementById("rpt-note").value="";
   document.getElementById("prog-slider").value=50;
   document.getElementById("prog-label").textContent="50%";
-  selectedTasks=[];
-  attachedFiles=[];
+  selectedTasks=[]; attachedFiles=[];
   renderFilePreviews();
   document.querySelectorAll(".tag").forEach(t=>t.classList.remove("active"));
   selectStatus("ปกติ");
-  // Reset auth state
-  rptAuthVerified=false;
-  document.getElementById("rpt-auth-ok").className="auth-ok";
   document.getElementById("rpt-form-body").style.display="none";
   document.getElementById("submit-btn").disabled=true;
+  document.getElementById("rpt-not-me").style.display="none";
   updateAttInfo();
 };
 
@@ -1180,28 +1231,12 @@ function renderEmpList() {
         <button class="emp-delete-btn" onclick="deleteEmployee(${e.id})">🗑 ลบ</button>
       </div>
       <div class="emp-cred-row">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div>
-            <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Username</div>
-            <div class="emp-cred-val">${e.username||"-"}</div>
-          </div>
-          <div>
-            <div style="font-size:10px;color:var(--muted);margin-bottom:2px">Password</div>
-            <div class="emp-cred-val" style="display:flex;align-items:center;gap:6px">
-              <span id="pw-${e.id}" style="filter:blur(4px);transition:filter 0.2s">${e.password||"-"}</span>
-              <button onclick="togglePw(${e.id})" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px;padding:0">👁</button>
-            </div>
-          </div>
-        </div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:3px">📧 Firebase Login Email</div>
+        <div class="emp-cred-val">${e.email||"ยังไม่ได้ตั้งค่า"}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:5px">🔑 รหัสผ่านจัดการผ่าน Firebase Console → Authentication → Users</div>
       </div>
     </div>`).join("");
 }
-
-window.togglePw = function(id) {
-  const el = document.getElementById(`pw-${id}`);
-  if (!el) return;
-  el.style.filter = el.style.filter === "none" ? "blur(4px)" : "none";
-};
 
 window.openEmpModal = function() {
   document.getElementById("emp-modal").classList.add("open");
@@ -1215,8 +1250,7 @@ window.openEmpModal = function() {
 
 window.closeEmpModal = function() {
   document.getElementById("emp-modal").classList.remove("open");
-  // reset form
-  ["new-emp-name","new-emp-code","new-emp-position","new-emp-user","new-emp-pass"].forEach(id=>{
+  ["new-emp-name","new-emp-code","new-emp-position","new-emp-user"].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value="";
   });
   const deptEl=document.getElementById("new-emp-dept");
@@ -1227,10 +1261,9 @@ window.closeEmpModal = function() {
 window.validateEmpForm = function() {
   const name=document.getElementById("new-emp-name")?.value.trim();
   const code=document.getElementById("new-emp-code")?.value.trim();
-  const user=document.getElementById("new-emp-user")?.value.trim();
-  const pass=document.getElementById("new-emp-pass")?.value.trim();
+  const email=document.getElementById("new-emp-user")?.value.trim();
   const btn=document.getElementById("emp-add-btn");
-  if(btn) btn.disabled = !(name&&name.length>=2&&code&&user&&pass);
+  if(btn) btn.disabled = !(name&&name.length>=2&&code&&email&&email.includes("@"));
 };
 
 window.addEmployee = async function() {
@@ -1238,17 +1271,18 @@ window.addEmployee = async function() {
   const empCode=document.getElementById("new-emp-code").value.trim();
   const position=document.getElementById("new-emp-position").value.trim();
   const dept=document.getElementById("new-emp-dept").value.trim()||"กองบูรณาการคุณภาพน้ำ";
-  const username=document.getElementById("new-emp-user").value.trim();
-  const password=document.getElementById("new-emp-pass").value.trim();
-  if(!name||!empCode||!username||!password) return;
+  const email=document.getElementById("new-emp-user").value.trim();
+  if(!name||!empCode||!email) return;
   const newId = EMPLOYEES.length ? Math.max(...EMPLOYEES.map(e=>e.id))+1 : 1;
   const avatar = makeAvatar(name);
-  const newEmp = { id:newId, name, dept, avatar, empCode, position, username, password };
+  const newEmp = { id:newId, name, dept, avatar, empCode, position, email };
   await set(ref(db,`employees/${newId}`), newEmp);
-  ["new-emp-name","new-emp-code","new-emp-position","new-emp-user","new-emp-pass"].forEach(id=>{
+  ["new-emp-name","new-emp-code","new-emp-position","new-emp-user"].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value="";
   });
   document.getElementById("emp-add-btn").disabled=true;
+  // แจ้งเตือนให้ Admin สร้าง account ใน Firebase Auth ด้วย
+  alert(`✅ เพิ่ม ${name} แล้ว\n\n⚠️ อย่าลืมสร้าง account ใน Firebase Console:\nAuthentication → Users → Add user\nEmail: ${email}`);
 };
 
 window.deleteEmployee = async function(id) {
