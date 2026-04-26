@@ -1028,20 +1028,22 @@ function renderProgressList() {
   const el=document.getElementById("progress-list");
   if(!list.length){el.innerHTML=`<div style="text-align:center;color:var(--muted);padding:40px">ยังไม่มีรายงานวันนี้</div>`;return;}
   el.innerHTML=list.map(r=>{
+    const emp = r.employee || { avatar:"?", name:"ไม่ทราบชื่อ", dept:"" };
     const s=STATUSES[r.status]||STATUSES["ปกติ"];
-    const bc=r.progress>=80?"#10b981":r.progress>=50?"#6366f1":"#f59e0b";
+    const prog = r.progress||0;
+    const bc=prog>=80?"#10b981":prog>=50?"#6366f1":"#f59e0b";
     return `<div class="progress-row">
-      <div class="avatar">${r.employee.avatar}</div>
+      <div class="avatar">${emp.avatar}</div>
       <div style="flex:1;min-width:0">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-          <div><span style="font-size:14px;font-weight:600">${r.employee.name}</span></div>
+          <div><span style="font-size:14px;font-weight:600">${emp.name}</span></div>
           <div style="display:flex;gap:8px;align-items:center">
-            <span class="badge" style="background:${s.bg};color:${s.color}">● ${r.status}</span>
-            <span style="font-size:14px;font-weight:700;color:#a78bfa">${r.progress}%</span>
+            <span class="badge" style="background:${s.bg};color:${s.color}">● ${r.status||"ปกติ"}</span>
+            <span style="font-size:14px;font-weight:700;color:#a78bfa">${prog}%</span>
           </div>
         </div>
-        <div class="pbar-wrap"><div class="pbar" style="width:${r.progress}%;background:${bc}"></div></div>
-        <div style="font-size:12px;color:var(--muted);margin-top:5px">🕐 ${r.checkIn||"--"} – ${r.checkOut||"--"} | ${r.tasks.join(", ")}</div>
+        <div class="pbar-wrap"><div class="pbar" style="width:${prog}%;background:${bc}"></div></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:5px">🕐 ${r.checkIn||"--"} – ${r.checkOut||"--"} | ${(r.tasks||[]).join(", ")||"ไม่มีข้อมูลงาน"}</div>
       </div>
     </div>`;
   }).join("");
@@ -1329,8 +1331,10 @@ function renderReports(){
   const grid=document.getElementById("report-grid");
   if(!reports.length){grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:60px">ยังไม่มีรายงาน</div>`;return;}
   grid.innerHTML=reports.map(r=>{
+    const emp = r.employee || { avatar:"?", name:"ไม่ทราบชื่อ" };
     const s=STATUSES[r.status]||STATUSES["ปกติ"];
-    const bc=r.progress>=80?"#10b981":r.progress>=50?"#6366f1":"#f59e0b";
+    const prog = r.progress||0;
+    const bc=prog>=80?"#10b981":prog>=50?"#6366f1":"#f59e0b";
     const attachHTML = (r.attachments&&r.attachments.length) ? `
       <div style="border-top:1px solid var(--border);padding-top:10px;margin-top:10px;">
         <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">📎 ไฟล์แนบ (${r.attachments.length})</div>
@@ -1344,20 +1348,20 @@ function renderReports(){
     return `<div class="report-card">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
         <div style="display:flex;gap:12px;align-items:center">
-          <div class="avatar" style="width:40px;height:40px;border-radius:10px;font-size:12px">${r.employee.avatar}</div>
-          <div><div style="font-size:14px;font-weight:600">${r.employee.name}</div><div style="font-size:11px;color:var(--muted)">${r.date||""}</div></div>
+          <div class="avatar" style="width:40px;height:40px;border-radius:10px;font-size:12px">${emp.avatar}</div>
+          <div><div style="font-size:14px;font-weight:600">${emp.name}</div><div style="font-size:11px;color:var(--muted)">${r.date||""}</div></div>
         </div>
-        <span class="badge" style="background:${s.bg};color:${s.color}">${r.status}</span>
+        <span class="badge" style="background:${s.bg};color:${s.color}">${r.status||"ปกติ"}</span>
       </div>
       <div style="margin-bottom:12px">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px">
           <span style="font-size:12px;color:var(--muted)">ความคืบหน้า</span>
-          <span style="font-size:14px;font-weight:700;color:#a78bfa">${r.progress}%</span>
+          <span style="font-size:14px;font-weight:700;color:#a78bfa">${prog}%</span>
         </div>
-        <div class="pbar-wrap"><div class="pbar" style="width:${r.progress}%;background:${bc}"></div></div>
+        <div class="pbar-wrap"><div class="pbar" style="width:${prog}%;background:${bc}"></div></div>
       </div>
-      <div style="font-size:12px;color:#94a3b8;margin-bottom:10px">🕐 ${r.checkIn} – ${r.checkOut}</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">${r.tasks.map(t=>`<span class="badge" style="background:var(--surface2);color:var(--muted)">${t}</span>`).join("")}</div>
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:10px">🕐 ${r.checkIn||"--"} – ${r.checkOut||"--"}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${(r.tasks||[]).map(t=>`<span class="badge" style="background:var(--surface2);color:var(--muted)">${t}</span>`).join("")}</div>
       ${r.note?`<div style="font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:10px;margin-top:10px">📝 ${r.note}</div>`:""}
       ${attachHTML}
     </div>`;
