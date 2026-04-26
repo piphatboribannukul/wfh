@@ -396,11 +396,11 @@
     </div>
   </div>
   <nav class="nav">
-    <button class="nav-btn active" onclick="showTab('dashboard')">Dashboard</button>
+    <button class="nav-btn active" onclick="showTab('form')">บันทึก</button>
+    <button class="nav-btn" onclick="showTab('dashboard')">Dashboard</button>
     <button class="nav-btn" onclick="showTab('meeting')">ห้องประชุม</button>
     <button class="nav-btn" onclick="showTab('report')">รายงานวันนี้</button>
     <button class="nav-btn" onclick="showTab('summary')">สรุปรายงาน</button>
-    <button class="nav-btn" onclick="showTab('form')">บันทึก</button>
     <button onclick="openEmpModal()" style="padding:8px 16px;border-radius:8px;border:1px solid var(--border);cursor:pointer;background:var(--surface2);color:var(--muted);font-family:'Sarabun',sans-serif;font-size:13px;transition:all 0.2s;white-space:nowrap;" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">👤 จัดการพนักงาน</button>
     <div class="user-chip" id="user-chip" style="display:none">
       <div class="user-chip-avatar" id="user-avatar">?</div>
@@ -420,7 +420,7 @@
 <div class="main">
 
   <!-- DASHBOARD -->
-  <div class="tab active" id="tab-dashboard">
+  <div class="tab" id="tab-dashboard">
     <div class="stats">
       <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value" style="color:#6366f1" id="stat-wfh">0</div><div class="stat-label">พนักงาน WFH</div></div>
       <div class="stat-card"><div class="stat-icon">🟢</div><div class="stat-value" style="color:#10b981" id="stat-online">0</div><div class="stat-label">กำลังทำงาน</div></div>
@@ -505,7 +505,7 @@
   </div>
 
   <!-- FORM -->
-  <div class="tab" id="tab-form">
+  <div class="tab active" id="tab-form">
     <div style="max-width:620px;margin:0 auto">
 
       <!-- CHECK IN/OUT -->
@@ -595,8 +595,8 @@
           <div id="custom-tags" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
         </div>
         <div class="form-group">
-          <label class="form-label">ความคืบหน้า: <span id="prog-label" style="color:#a78bfa;font-weight:700">50%</span></label>
-          <input type="range" min="0" max="100" value="50" id="prog-slider" oninput="document.getElementById('prog-label').textContent=this.value+'%'"/>
+          <label class="form-label">ความคืบหน้า: <span id="prog-label" style="color:#a78bfa;font-weight:700">100%</span></label>
+          <input type="range" min="0" max="100" value="100" id="prog-slider" oninput="document.getElementById('prog-label').textContent=this.value+'%'"/>
         </div>
         <div class="form-group">
           <label class="form-label">สถานะ</label>
@@ -723,11 +723,11 @@
 <!-- BOTTOM NAV -->
 <nav class="bottom-nav">
   <div class="bottom-nav-inner">
-    <button class="bnav-btn active" id="bnav-dashboard" onclick="showTab('dashboard')"><span class="bnav-icon">📊</span>หน้าหลัก</button>
+    <button class="bnav-btn active" id="bnav-form" onclick="showTab('form')"><span class="bnav-icon">✏️</span>บันทึก</button>
+    <button class="bnav-btn" id="bnav-dashboard" onclick="showTab('dashboard')"><span class="bnav-icon">📊</span>หน้าหลัก</button>
     <button class="bnav-btn" id="bnav-meeting" onclick="showTab('meeting')"><span class="bnav-icon">📹</span>ประชุม</button>
     <button class="bnav-btn" id="bnav-report" onclick="showTab('report')"><span class="bnav-icon">📄</span>วันนี้</button>
     <button class="bnav-btn" id="bnav-summary" onclick="showTab('summary')"><span class="bnav-icon">📅</span>สรุป</button>
-    <button class="bnav-btn" id="bnav-form" onclick="showTab('form')"><span class="bnav-icon">✏️</span>บันทึก</button>
   </div>
 </nav>
 
@@ -937,7 +937,13 @@ const DEFAULT_EMPLOYEES = [
 ];
 const ADMIN_ID = "admin1234";
 let isAdminLoggedIn = false;
-const TASKS = ["ประชุมทีม","พัฒนา Feature","รีวิวโค้ด","เขียนเอกสาร","ดูแล Bug","วางแผนโปรเจกต์","ฝึกอบรม","ติดต่อลูกค้า"];
+const TASKS = [
+  "ประชุม",
+  "แนะนำอัตราปรับจ่ายคลอรีนประจำวัน",
+  "ตรวจสอบระบบคุณภาพน้ำประปาระยะไกล",
+  "ตัดค่าคุณภาพน้ำประปา",
+  "ฝึกอบรม",
+];
 const STATUSES = {
   "ปกติ":   { bg:"#d1fae5", color:"#065f46" },
   "ติดขัด": { bg:"#fef3c7", color:"#92400e" },
@@ -1057,7 +1063,7 @@ window.showTab = function(name) {
   document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
   document.querySelectorAll(".bnav-btn").forEach(b=>b.classList.remove("active"));
   document.getElementById("tab-"+name).classList.add("active");
-  ["dashboard","meeting","report","summary","form"].forEach((t,i)=>{
+  ["form","dashboard","meeting","report","summary"].forEach((t,i)=>{
     if(t===name) document.querySelectorAll(".nav-btn")[i].classList.add("active");
   });
   const bnav = document.getElementById("bnav-"+name);
@@ -1153,10 +1159,16 @@ function renderDashboard() {
 
   document.getElementById("att-overview").innerHTML=EMPLOYEES.map(emp=>{
     const att=attendance[emp.id];
-    const label=!att?"ยังไม่ได้ Check In":!att.checkOut?`เข้างาน ${att.checkIn}`:`${att.checkIn} – ${att.checkOut}`;
-    const dot=!att?"#475569":!att.checkOut?"#10b981":"#3b82f6";
+    const isLate = att?.checkIn && (() => { const [h,m]=(att.checkIn||"0:0").split(":").map(Number); return h>9||(h===9&&m>0); })();
+    const label=!att?"ยังไม่ได้ Check In"
+      :!att.checkOut
+        ? isLate
+          ? `<span style="color:#ef4444;font-weight:600">🔴 สาย · ${att.checkIn}</span>`
+          : `เข้างาน ${att.checkIn}`
+        :`${att.checkIn} – ${att.checkOut}`;
+    const dot=!att?"#475569":!att.checkOut?(isLate?"#ef4444":"#10b981"):"#3b82f6";
     const glow=att&&!att.checkOut?`box-shadow:0 0 8px ${dot}`:"";
-    return `<div class="att-card"><div class="att-dot" style="background:${dot};${glow}"></div><div><div class="att-name">${emp.name}</div><div class="att-time">${emp.empCode?`<span style="color:#a78bfa;font-size:9px">#${emp.empCode}</span> · `:""}${emp.position?emp.position+" · ":""}<span style="color:var(--muted)">${label}</span></div></div></div>`;
+    return `<div class="att-card"><div class="att-dot" style="background:${dot};${glow}"></div><div><div class="att-name">${emp.name}</div><div class="att-time">${emp.empCode?`<span style="color:#a78bfa;font-size:9px">#${emp.empCode}</span> · `:""}${emp.position?emp.position+" · ":""}<span>${label}</span></div></div></div>`;
   }).join("");
 
   renderProgressList();
@@ -1357,9 +1369,14 @@ window.updateCIDisplay = function() {
     btnCI.disabled=false; btnCO.disabled=true;
     stopElapsedTimer();
   } else if(!att.checkOut){
-    stD.textContent="🟢 กำลังทำงาน"; stD.style.color="#10b981";
+    const isLate = att.late || (() => { const [h,m] = (att.checkIn||"0:0").split(":").map(Number); return h>9||(h===9&&m>0); })();
+    stD.innerHTML = isLate
+      ? `<span style="color:#ef4444;font-weight:700">🔴 สาย (${att.checkIn})</span>`
+      : `🟢 กำลังทำงาน`;
+    stD.style.color = isLate ? "#ef4444" : "#10b981";
+    ciD.style.color = isLate ? "#ef4444" : "#10b981";
     btnCI.disabled=true;
-    startElapsedTimer(att.checkIn); // timer จัดการปุ่ม checkout เอง
+    startElapsedTimer(att.checkIn);
   } else {
     stD.textContent="🔵 เลิกงานแล้ว"; stD.style.color="#3b82f6";
     btnCI.disabled=true; btnCO.disabled=true;
@@ -1367,12 +1384,12 @@ window.updateCIDisplay = function() {
   }
 };
 
-function showFeedback(msg,type){
+function showFeedback(msg, type){
   const el=document.getElementById("ci-feedback");
   el.style.display="block";
-  el.style.background=type==="in"?"#064e3b":"#1e3a5f";
-  el.style.color=type==="in"?"#6ee7b7":"#93c5fd";
-  el.style.border=`1px solid ${type==="in"?"#10b981":"#3b82f6"}`;
+  if (type==="in") { el.style.background="#064e3b"; el.style.color="#6ee7b7"; el.style.border="1px solid #10b981"; }
+  else if (type==="out") { el.style.background="#1e3a5f"; el.style.color="#93c5fd"; el.style.border="1px solid #3b82f6"; }
+  else if (type==="late") { el.style.background="#450a0a"; el.style.color="#fca5a5"; el.style.border="1px solid #ef4444"; }
   el.textContent=msg;
   setTimeout(()=>{el.style.display="none";},3000);
 }
@@ -1381,9 +1398,11 @@ window.doCheckIn = async function(){
   let id = parseInt(document.getElementById("ci-emp").value);
   if (!id && currentEmployee) id = currentEmployee.id;
   if(!id) return;
-  const t=getNow();
-  await saveAttendance(id, {checkIn:t, checkOut:null, employeeId:id});
-  showFeedback(`✅ Check In สำเร็จ! เวลา ${t}`,"in");
+  const t = getNow();
+  const [h, m] = t.split(":").map(Number);
+  const isLate = h > 9 || (h === 9 && m > 0);
+  await saveAttendance(id, {checkIn:t, checkOut:null, employeeId:id, late: isLate});
+  showFeedback(isLate ? `⚠️ Check In สำเร็จ เวลา ${t} (สาย)` : `✅ Check In สำเร็จ! เวลา ${t}`, isLate ? "late" : "in");
   updateCIDisplay();
 };
 
@@ -1512,8 +1531,8 @@ window.submitReport = async function(){
   setTimeout(()=>{alertEl.style.display="none";},2500);
   // Reset form
   document.getElementById("rpt-note").value="";
-  document.getElementById("prog-slider").value=50;
-  document.getElementById("prog-label").textContent="50%";
+  document.getElementById("prog-slider").value=100;
+  document.getElementById("prog-label").textContent="100%";
   selectedTasks=[]; attachedFiles=[];
   customTasks=[];
   renderCustomTags();
