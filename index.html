@@ -727,6 +727,7 @@ onAuthStateChanged(auth, user => {
     document.getElementById("login-screen").style.display = "none";
     document.getElementById("login-btn").disabled = false;
     document.getElementById("login-spinner").style.display = "none";
+    document.getElementById("loading").classList.add("hidden"); // ซ่อน loading ทันที
     if (!fbListening) { fbListening = true; listenFirebase(); }
     else matchCurrentEmployee();
   } else {
@@ -886,10 +887,8 @@ function listenFirebase() {
     renderDashboard();
     renderReports();
     setSyncStatus("connected", "ซิงค์แล้ว · อัปเดตแบบ Real-time 🔄");
-    // Hide loading
     document.getElementById("loading").classList.add("hidden");
     dbReady = true;
-    document.getElementById("submit-btn").disabled = true; // enabled only when emp selected
   }, err => {
     setSyncStatus("error", "เชื่อมต่อไม่ได้: "+err.message);
     document.getElementById("loading").classList.add("hidden");
@@ -1292,11 +1291,9 @@ function selectStatus(s){
 }
 
 window.submitReport = async function(){
-  // ดึง empId จาก hidden input หรือ currentEmployee
   let empId = parseInt(document.getElementById("rpt-emp").value);
   if (!empId && currentEmployee) empId = currentEmployee.id;
   if (!empId) { alert("ไม่พบข้อมูลพนักงาน กรุณา login ใหม่"); return; }
-  if (selectedTasks.length === 0) { alert("กรุณาเลือกงานที่ทำอย่างน้อย 1 รายการ"); return; }
   const emp = EMPLOYEES.find(e=>e.id===empId) || currentEmployee;
   const att = attendance[empId];
   const progress = parseInt(document.getElementById("prog-slider").value);
