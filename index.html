@@ -781,8 +781,10 @@ function updateFormUserDisplay() {
   // Enable form
   const formBody = document.getElementById("rpt-form-body");
   const submitBtn = document.getElementById("submit-btn");
+  const btnCI = document.getElementById("btn-checkin");
   if (formBody) formBody.style.display = "block";
   if (submitBtn) submitBtn.disabled = false;
+  if (btnCI && !attendance[emp.id]) btnCI.disabled = false;
 
   updateCIDisplay();
   updateAttInfo();
@@ -935,9 +937,11 @@ window.showTab = function(name) {
 
 // ─── INIT UI ───
 function initUI() {
-  // แสดง rpt-form-body ทันที (submit ยังปิดอยู่จนกว่าจะ match employee)
+  // แสดง rpt-form-body และเปิด submit-btn ทันที
   const formBody = document.getElementById("rpt-form-body");
   if (formBody) formBody.style.display = "block";
+  const submitBtn = document.getElementById("submit-btn");
+  if (submitBtn) submitBtn.disabled = false;
 
   // Task tags
   TASKS.forEach(t=>{
@@ -1176,7 +1180,8 @@ function showFeedback(msg,type){
 }
 
 window.doCheckIn = async function(){
-  const id=parseInt(document.getElementById("ci-emp").value);
+  let id = parseInt(document.getElementById("ci-emp").value);
+  if (!id && currentEmployee) id = currentEmployee.id;
   if(!id) return;
   const t=getNow();
   await saveAttendance(id, {checkIn:t, checkOut:null, employeeId:id});
@@ -1185,7 +1190,8 @@ window.doCheckIn = async function(){
 };
 
 window.doCheckOut = async function(){
-  const id=parseInt(document.getElementById("ci-emp").value);
+  let id = parseInt(document.getElementById("ci-emp").value);
+  if (!id && currentEmployee) id = currentEmployee.id;
   if(!id||!attendance[id]) return;
   const t=getNow();
   await saveAttendance(id, {...attendance[id], checkOut:t});
@@ -1286,13 +1292,16 @@ function selectStatus(s){
 }
 
 window.submitReport = async function(){
-  const empId=parseInt(document.getElementById("rpt-emp").value);
-  if(!empId||selectedTasks.length===0) return;
-  const emp=EMPLOYEES.find(e=>e.id===empId);
-  const att=attendance[empId];
-  const progress=parseInt(document.getElementById("prog-slider").value);
-  const note=document.getElementById("rpt-note").value;
-  const newReport={
+  // ดึง empId จาก hidden input หรือ currentEmployee
+  let empId = parseInt(document.getElementById("rpt-emp").value);
+  if (!empId && currentEmployee) empId = currentEmployee.id;
+  if (!empId) { alert("ไม่พบข้อมูลพนักงาน กรุณา login ใหม่"); return; }
+  if (selectedTasks.length === 0) { alert("กรุณาเลือกงานที่ทำอย่างน้อย 1 รายการ"); return; }
+  const emp = EMPLOYEES.find(e=>e.id===empId) || currentEmployee;
+  const att = attendance[empId];
+  const progress = parseInt(document.getElementById("prog-slider").value);
+  const note = document.getElementById("rpt-note").value;
+  const newReport = {
     id:Date.now(), employeeId:empId,
     checkIn:att?.checkIn||"--:--", checkOut:att?.checkOut||"--:--",
     tasks:[...selectedTasks], status:currentStatus, note, progress,
@@ -1305,7 +1314,7 @@ window.submitReport = async function(){
   const alertEl=document.getElementById("success-alert");
   alertEl.style.display="block";
   setTimeout(()=>{alertEl.style.display="none";},2500);
-  // Reset form (keep employee as current user)
+  // Reset form
   document.getElementById("rpt-note").value="";
   document.getElementById("prog-slider").value=50;
   document.getElementById("prog-label").textContent="50%";
