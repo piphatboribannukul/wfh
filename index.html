@@ -135,8 +135,8 @@
   .success-alert{background:#064e3b;border:1px solid var(--green);border-radius:12px;padding:14px;color:#6ee7b7;font-size:14px;text-align:center;margin-bottom:18px;display:none;animation:popIn 0.3s ease;}
 
   /* LOADING */
-  .loading-overlay{position:fixed;inset:0;background:#0b0f1a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity 0.4s;}
-  .loading-overlay.hidden{opacity:0;pointer-events:none;}
+  .loading-overlay{position:fixed;inset:0;background:#0b0f1a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;transition:opacity 0.3s;}
+  .loading-overlay.hidden{opacity:0;pointer-events:none;display:none;}
   .loading-spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:16px;}
   @keyframes spin{to{transform:rotate(360deg)}}
   .loading-text{color:var(--muted);font-size:14px;}
@@ -853,11 +853,10 @@ onAuthStateChanged(auth, user => {
     document.getElementById("login-screen").style.display = "none";
     document.getElementById("login-btn").disabled = false;
     document.getElementById("login-spinner").style.display = "none";
-    // ซ่อน loading ทันที ไม่รอ Firebase
     const loadingEl = document.getElementById("loading");
     loadingEl.classList.add("hidden");
-    // fallback: ซ่อนแน่ๆ หลัง 2 วินาที
     setTimeout(() => loadingEl.classList.add("hidden"), 2000);
+    setSyncStatus("connected", "เชื่อมต่อแล้ว · Real-time 🔄");
     if (!fbListening) { fbListening = true; listenFirebase(); }
     else matchCurrentEmployee();
   } else {
@@ -1164,14 +1163,15 @@ function renderDashboard() {
   document.getElementById("att-overview").innerHTML=EMPLOYEES.map(emp=>{
     const att=attendance[emp.id];
     const isLate = att?.checkIn && (() => { const [h,m]=(att.checkIn||"0:0").split(":").map(Number); return h>9||(h===9&&m>0); })();
-    const label=!att?"ยังไม่ได้ Check In"
-      :!att.checkOut
-        ? isLate
-          ? `<span style="color:#ef4444;font-weight:600">🔴 สาย · ${att.checkIn}</span>`
-          : `เข้างาน ${att.checkIn}`
-        :`${att.checkIn} – ${att.checkOut}`;
-    const dot=!att?"#475569":!att.checkOut?(isLate?"#ef4444":"#10b981"):"#3b82f6";
-    const glow=att&&!att.checkOut?`box-shadow:0 0 8px ${dot}`:"";
+    const label=!att
+      ? "ยังไม่ได้ Check In"
+      : isLate
+        ? `<span style="color:#ef4444;font-weight:600">🔴 สาย · ${att.checkIn}${att.checkOut?" – "+att.checkOut:""}</span>`
+        : !att.checkOut
+          ? `เข้างาน ${att.checkIn}`
+          : `${att.checkIn} – ${att.checkOut}`;
+    const dot = !att ? "#475569" : isLate ? "#ef4444" : !att.checkOut ? "#10b981" : "#3b82f6";
+    const glow = att && !att.checkOut ? `box-shadow:0 0 8px ${dot}` : "";
     return `<div class="att-card"><div class="att-dot" style="background:${dot};${glow}"></div><div><div class="att-name">${emp.name}</div><div class="att-time">${emp.empCode?`<span style="color:#a78bfa;font-size:9px">#${emp.empCode}</span> · `:""}${emp.position?emp.position+" · ":""}<span>${label}</span></div></div></div>`;
   }).join("");
 
@@ -1382,7 +1382,16 @@ window.updateCIDisplay = function() {
     btnCI.disabled=true;
     startElapsedTimer(att.checkIn);
   } else {
-    stD.textContent="🔵 เลิกงานแล้ว"; stD.style.color="#3b82f6";
+    // checkout แล้ว — ถ้าสายให้ค้างสีแดง
+    const wasLate = att.late || (() => { const [h,m]=(att.checkIn||"0:0").split(":").map(Number); return h>9||(h===9&&m>0); })();
+    if (wasLate) {
+      stD.innerHTML = `<span style="color:#ef4444;font-weight:700">🔴 สาย · ${att.checkIn} – ${att.checkOut}</span>`;
+      stD.style.color = "#ef4444";
+      ciD.style.color = "#ef4444";
+      coD.style.color = "#ef4444";
+    } else {
+      stD.textContent = "🔵 เลิกงานแล้ว"; stD.style.color = "#3b82f6";
+    }
     btnCI.disabled=true; btnCO.disabled=true;
     stopElapsedTimer();
   }
@@ -1580,7 +1589,11 @@ function renderReports(){
         </div>
         <div class="pbar-wrap"><div class="pbar" style="width:${prog}%;background:${bc}"></div></div>
       </div>
-      <div style="font-size:12px;color:#94a3b8;margin-bottom:10px">🕐 ${r.checkIn||"--"} – ${r.checkOut||"--"}</div>
+      <div style="font-size:12px;margin-bottom:10px">
+        ${(() => { const [h,m]=(r.checkIn||"0:0").split(":").map(Number); return (h>9||(h===9&&m>0)); })()
+          ? `<span style="color:#ef4444;font-weight:600">🔴 สาย · ${r.checkIn} – ${r.checkOut||"--:--"}</span>`
+          : `<span style="color:#94a3b8">🕐 ${r.checkIn||"--"} – ${r.checkOut||"--:--"}</span>`}
+      </div>
       <div style="display:flex;flex-wrap:wrap;gap:6px">${(r.tasks||[]).map(t=>`<span class="badge" style="background:var(--surface2);color:var(--muted)">${t}</span>`).join("")}</div>
       ${r.note?`<div style="font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:10px;margin-top:10px">📝 ${r.note}</div>`:""}
       ${attachHTML}
@@ -1769,15 +1782,20 @@ function loadEmpHistoryForDate(date) {
 
 function renderEmpHistContent(el, rpts, att, dateLabel) {
   const attBar = att ? `
-    <div style="background:#0b0f1a;border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-around">
-      <div style="text-align:center">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:3px">CHECK IN</div>
-        <div style="font-size:18px;font-weight:700;color:#10b981;font-family:'IBM Plex Mono',monospace">${att.checkIn||"--:--"}</div>
-      </div>
-      <div style="font-size:18px;color:var(--border)">⟶</div>
-      <div style="text-align:center">
-        <div style="font-size:10px;color:var(--muted);margin-bottom:3px">CHECK OUT</div>
-        <div style="font-size:18px;font-weight:700;color:${att.checkOut?"#3b82f6":"var(--muted)"};font-family:'IBM Plex Mono',monospace">${att.checkOut||"--:--"}</div>
+    <div style="background:#0b0f1a;border-radius:10px;padding:12px 16px;margin-bottom:14px">
+      ${(() => { const [h,m]=(att.checkIn||"0:0").split(":").map(Number); return h>9||(h===9&&m>0); })()
+        ? `<div style="color:#ef4444;font-weight:700;font-size:13px;text-align:center;margin-bottom:10px">🔴 มาสาย</div>`
+        : ""}
+      <div style="display:flex;justify-content:space-around">
+        <div style="text-align:center">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:3px">CHECK IN</div>
+          <div style="font-size:18px;font-weight:700;color:${(() => { const [h,m]=(att.checkIn||"0:0").split(":").map(Number); return h>9||(h===9&&m>0); })()?"#ef4444":"#10b981"};font-family:'IBM Plex Mono',monospace">${att.checkIn||"--:--"}</div>
+        </div>
+        <div style="font-size:18px;color:var(--border)">⟶</div>
+        <div style="text-align:center">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:3px">CHECK OUT</div>
+          <div style="font-size:18px;font-weight:700;color:${att.checkOut?"#3b82f6":"var(--muted)"};font-family:'IBM Plex Mono',monospace">${att.checkOut||"--:--"}</div>
+        </div>
       </div>
     </div>` : `<div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:14px;padding:10px;background:#0b0f1a;border-radius:8px">ไม่มีข้อมูลการเข้างาน</div>`;
 
