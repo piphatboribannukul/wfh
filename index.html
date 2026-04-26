@@ -415,6 +415,29 @@
     </div>
   </div>
 
+  <!-- EMPLOYEE HISTORY PANEL (slide-in) -->
+  <div id="emp-history-panel" style="display:none;position:fixed;inset:0;z-index:500;display:flex;align-items:stretch" onclick="if(event.target===this)closeEmpHistory()">
+    <div style="flex:1;background:rgba(0,0,0,0.5)" onclick="closeEmpHistory()"></div>
+    <div style="width:min(480px,100vw);background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden">
+      <div style="padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+        <div>
+          <div style="font-size:15px;font-weight:800" id="emp-hist-name">—</div>
+          <div style="font-size:12px;color:var(--muted)" id="emp-hist-sub">ประวัติรายงาน</div>
+        </div>
+        <button onclick="closeEmpHistory()" style="background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer">✕</button>
+      </div>
+      <!-- Date picker for history -->
+      <div style="padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0">
+        <button onclick="changeEmpHistDay(-1)" style="padding:6px 12px;border-radius:6px;border:none;cursor:pointer;background:var(--surface2);color:var(--muted);font-family:'Sarabun',sans-serif;font-size:12px">◀</button>
+        <input type="date" id="emp-hist-date" class="date-input" onchange="loadEmpHistoryDate(this.value)" style="flex:1;font-size:13px"/>
+        <button onclick="changeEmpHistDay(1)" id="emp-hist-next" style="padding:6px 12px;border-radius:6px;border:none;cursor:pointer;background:var(--surface2);color:var(--muted);font-family:'Sarabun',sans-serif;font-size:12px">▶</button>
+      </div>
+      <div id="emp-hist-content" style="flex:1;overflow-y:auto;padding:16px 20px">
+        <div style="text-align:center;color:var(--muted);padding:40px">⏳ กำลังโหลด...</div>
+      </div>
+    </div>
+  </div>
+
   <!-- FORM -->
   <div class="tab" id="tab-form">
     <div style="max-width:620px;margin:0 auto">
@@ -564,6 +587,24 @@
           <span class="admin-badge">🔑 Admin</span>
         </div>
         <div id="emp-list-container"></div>
+
+        <!-- ⚙️ ตั้งค่าระบบ -->
+        <div class="emp-add-form" style="margin-top:12px">
+          <h4>⚙️ ตั้งค่าระบบ</h4>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <label style="font-size:13px;color:var(--muted)">⏱ เวลาขั้นต่ำก่อน Check Out:</label>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input id="checkout-hours" type="number" min="0" max="24" value="8"
+                style="width:60px;padding:8px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Sarabun',sans-serif;font-size:14px;text-align:center"/>
+              <span style="font-size:13px;color:var(--muted)">ชั่วโมง</span>
+              <input id="checkout-mins" type="number" min="0" max="59" value="0"
+                style="width:60px;padding:8px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Sarabun',sans-serif;font-size:14px;text-align:center"/>
+              <span style="font-size:13px;color:var(--muted)">นาที</span>
+            </div>
+            <button onclick="saveCheckoutTime()" style="padding:8px 16px;border-radius:8px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700">บันทึก</button>
+          </div>
+          <div id="checkout-time-label" style="font-size:12px;color:var(--muted);margin-top:8px">ค่าปัจจุบัน: กำลังโหลด...</div>
+        </div>
 
         <!-- Add employee form -->
         <div class="emp-add-form">
@@ -847,6 +888,7 @@ function setSyncStatus(state, msg) {
 // ─── FIREBASE LISTENERS ───
 function listenFirebase() {
   const today = todayKey();
+  loadCheckoutSetting(); // โหลด checkout time setting
 
   // ── Employees (realtime) ──
   onValue(ref(db, "employees"), snap => {
@@ -1059,7 +1101,35 @@ window.onRptEmpChange = function() { updateAttInfo(); };
 // ─── ELAPSED TIMER ───
 let elapsedTimer = null;
 const REQUIRED_HOURS = 8;
-const REQUIRED_MS = REQUIRED_HOURS * 60 * 60 * 1000;
+let REQUIRED_MS = REQUIRED_HOURS * 60 * 60 * 1000; // default, overridden by Firebase settings
+
+// โหลด checkout time setting จาก Firebase
+function loadCheckoutSetting() {
+  onValue(ref(db, "settings/checkoutMinutes"), snap => {
+    const mins = snap.exists() ? snap.val() : 480; // default 8 ชม. = 480 นาที
+    REQUIRED_MS = mins * 60 * 1000;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    const lbl = document.getElementById("checkout-time-label");
+    if (lbl) lbl.textContent = `ค่าปัจจุบัน: ${h} ชั่วโมง ${m} นาที`;
+    const hInp = document.getElementById("checkout-hours");
+    const mInp = document.getElementById("checkout-mins");
+    if (hInp) hInp.value = h;
+    if (mInp) mInp.value = m;
+    // update elapsed wrap label
+    const wrap = document.getElementById("elapsed-wrap");
+    if (wrap) wrap.querySelector("span:last-child").textContent = `เป้าหมาย ${h} ชม.${m>0?" "+m+" นาที":""}`;
+  }, { onlyOnce: false });
+}
+
+window.saveCheckoutTime = async function() {
+  const h = parseInt(document.getElementById("checkout-hours").value) || 0;
+  const m = parseInt(document.getElementById("checkout-mins").value) || 0;
+  const totalMins = h * 60 + m;
+  if (totalMins < 1) { alert("กรุณาตั้งเวลาอย่างน้อย 1 นาที"); return; }
+  await set(ref(db, "settings/checkoutMinutes"), totalMins);
+  document.getElementById("checkout-time-label").textContent = `✅ บันทึกแล้ว: ${h} ชั่วโมง ${m} นาที`;
+};
 
 function startElapsedTimer(checkInTime) {
   stopElapsedTimer();
@@ -1484,6 +1554,110 @@ window.deleteEmployee = async function(id) {
 };
 
 // ═══════════════════════════════════════════════════════════════
+// EMPLOYEE HISTORY PANEL
+// ═══════════════════════════════════════════════════════════════
+let empHistCurrentEmp = null;
+let empHistCurrentDate = new Date();
+
+window.openEmpHistory = function(empId) {
+  const emp = EMPLOYEES.find(e => e.id === empId);
+  if (!emp) return;
+  empHistCurrentEmp = emp;
+  empHistCurrentDate = summaryCurrentDate ? new Date(summaryCurrentDate) : new Date();
+  document.getElementById("emp-hist-name").textContent = emp.name;
+  document.getElementById("emp-hist-sub").textContent = `${emp.position || emp.dept}`;
+  document.getElementById("emp-hist-date").value = empHistCurrentDate.toISOString().slice(0,10);
+  document.getElementById("emp-history-panel").style.display = "flex";
+  document.getElementById("emp-hist-next").disabled = empHistCurrentDate.toDateString() === new Date().toDateString();
+  loadEmpHistoryForDate(empHistCurrentDate);
+};
+
+window.closeEmpHistory = function() {
+  document.getElementById("emp-history-panel").style.display = "none";
+};
+
+window.changeEmpHistDay = function(delta) {
+  empHistCurrentDate.setDate(empHistCurrentDate.getDate() + delta);
+  document.getElementById("emp-hist-date").value = empHistCurrentDate.toISOString().slice(0,10);
+  document.getElementById("emp-hist-next").disabled = empHistCurrentDate.toDateString() === new Date().toDateString();
+  loadEmpHistoryForDate(empHistCurrentDate);
+};
+
+window.loadEmpHistoryDate = function(val) {
+  if (!val) return;
+  empHistCurrentDate = new Date(val + "T00:00:00");
+  document.getElementById("emp-hist-next").disabled = empHistCurrentDate.toDateString() === new Date().toDateString();
+  loadEmpHistoryForDate(empHistCurrentDate);
+};
+
+function loadEmpHistoryForDate(date) {
+  const key = dateToKey(date);
+  const content = document.getElementById("emp-hist-content");
+  content.innerHTML = `<div style="text-align:center;color:var(--muted);padding:40px">⏳ กำลังโหลด...</div>`;
+  const thDate = date.toLocaleDateString("th-TH", {weekday:"long", day:"numeric", month:"long", year:"numeric"});
+
+  onValue(ref(db, `reports/${key}`), snap => {
+    if (!snap.exists()) {
+      content.innerHTML = `<div style="text-align:center;color:var(--muted);padding:40px;font-size:13px">📭 ไม่มีรายงานในวันนี้<br/><span style="font-size:11px">${thDate}</span></div>`;
+      return;
+    }
+    // Filter เฉพาะรายงานของพนักงานคนนี้
+    const all = Object.values(snap.val());
+    const myReports = all.filter(r => r.employeeId === empHistCurrentEmp.id).sort((a,b) => b.id - a.id);
+
+    // โหลด attendance ของวันนั้นด้วย
+    onValue(ref(db, `attendance/${key}/${empHistCurrentEmp.id}`), attSnap => {
+      const att = attSnap.exists() ? attSnap.val() : null;
+      renderEmpHistContent(content, myReports, att, thDate);
+    }, { onlyOnce: true });
+  }, { onlyOnce: true });
+}
+
+function renderEmpHistContent(el, rpts, att, dateLabel) {
+  const attBar = att ? `
+    <div style="background:#0b0f1a;border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;justify-content:space-around">
+      <div style="text-align:center">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:3px">CHECK IN</div>
+        <div style="font-size:18px;font-weight:700;color:#10b981;font-family:'IBM Plex Mono',monospace">${att.checkIn||"--:--"}</div>
+      </div>
+      <div style="font-size:18px;color:var(--border)">⟶</div>
+      <div style="text-align:center">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:3px">CHECK OUT</div>
+        <div style="font-size:18px;font-weight:700;color:${att.checkOut?"#3b82f6":"var(--muted)"};font-family:'IBM Plex Mono',monospace">${att.checkOut||"--:--"}</div>
+      </div>
+    </div>` : `<div style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:14px;padding:10px;background:#0b0f1a;border-radius:8px">ไม่มีข้อมูลการเข้างาน</div>`;
+
+  if (!rpts.length) {
+    el.innerHTML = attBar + `<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">📭 ไม่มีรายงาน<br/><span style="font-size:11px">${dateLabel}</span></div>`;
+    return;
+  }
+
+  el.innerHTML = `
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">${dateLabel} · ${rpts.length} รายงาน</div>
+    ${attBar}
+    ${rpts.map(r => {
+      const s = STATUSES[r.status] || STATUSES["ปกติ"];
+      const prog = r.progress || 0;
+      const bc = prog>=80?"#10b981":prog>=50?"#6366f1":"#f59e0b";
+      const attachCount = r.attachments?.length || 0;
+      return `<div style="background:#0b0f1a;border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span class="badge" style="background:${s.bg};color:${s.color}">${r.status||"ปกติ"}</span>
+          <div style="display:flex;align-items:center;gap:8px">
+            ${attachCount?`<span style="font-size:11px;color:var(--muted)">📎${attachCount}</span>`:""}
+            <span style="font-size:16px;font-weight:800;color:#a78bfa">${prog}%</span>
+          </div>
+        </div>
+        <div class="pbar-wrap" style="margin-bottom:10px"><div class="pbar" style="width:${prog}%;background:${bc}"></div></div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:${r.note?'8px':'0'}">
+          ${(r.tasks||[]).map(t=>`<span style="padding:3px 8px;border-radius:12px;font-size:11px;background:var(--surface2);color:var(--muted)">${t}</span>`).join("")}
+        </div>
+        ${r.note?`<div style="font-size:11px;color:var(--muted);padding-top:8px;border-top:1px solid var(--border)">📝 ${r.note}</div>`:""}
+      </div>`;
+    }).join("")}`;
+}
+
+// ═══════════════════════════════════════════════════════════════
 // SUMMARY TAB — ดูรายงานย้อนหลังแต่ละวัน
 // ═══════════════════════════════════════════════════════════════
 let summaryCurrentDate = new Date();    // วันที่ที่กำลังดูอยู่
@@ -1629,10 +1803,11 @@ function renderSummaryContent({ reports: rpts, attendance: atts }) {
             <div style="font-size:15px;font-weight:700">${g.emp.name}</div>
             <div style="font-size:11px;color:${attColor};margin-top:2px">🕐 ${attLabel}</div>
           </div>
-          <div style="text-align:right;flex-shrink:0;margin-right:12px">
+          <div style="text-align:right;flex-shrink:0;margin-right:8px">
             <div style="font-size:22px;font-weight:800;color:${bc}">${avgP}%</div>
             <div style="font-size:10px;color:var(--muted)">${g.reports.length} รายงาน</div>
           </div>
+          <button onclick="event.stopPropagation();openEmpHistory(${g.emp.id})" style="padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Sarabun',sans-serif;font-size:11px;cursor:pointer;flex-shrink:0;margin-right:8px" title="ดูประวัติย้อนหลัง">📋 ประวัติ</button>
           <span class="chevron" id="chevron-${gi}">▶</span>
         </div>
         <div class="summary-emp-body" id="summary-body-${gi}" style="display:none">
