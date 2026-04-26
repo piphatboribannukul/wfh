@@ -428,12 +428,12 @@
         </div>
         <div class="form-group">
           <label class="form-label">เลือกพนักงาน</label>
-          <select class="form-select" id="ci-emp" onchange="onCiEmpChange()">
-            <option value="">-- เลือกพนักงาน --</option>
-          </select>
-          <div id="ci-not-me" style="display:none;font-size:12px;color:#f59e0b;margin-top:6px;padding:8px 12px;background:#1c1200;border-radius:8px;border:1px solid #78350f">
-            ⚠️ คุณกำลังบันทึกในนามพนักงานคนอื่น — ระบบจะบันทึก log ไว้
+          <!-- ล็อคให้แสดงเฉพาะชื่อตัวเอง ไม่ให้เลือกคนอื่น -->
+          <div id="ci-emp-display" style="padding:12px 16px;border-radius:10px;background:#0b0f1a;border:1px solid var(--border);font-size:14px;color:var(--text);display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0" id="ci-avatar">?</div>
+            <span id="ci-emp-name" style="font-weight:600">กำลังโหลด...</span>
           </div>
+          <input type="hidden" id="ci-emp"/>
         </div>
         <div class="time-display">
           <div class="time-box">
@@ -467,16 +467,15 @@
         <div class="success-alert" id="success-alert">✅ บันทึกรายงานเรียบร้อยแล้ว!</div>
         <div class="form-group">
           <label class="form-label">พนักงาน *</label>
-          <select class="form-select" id="rpt-emp" onchange="onRptEmpChange()">
-            <option value="">-- เลือกพนักงาน --</option>
-          </select>
-          <div id="rpt-not-me" style="display:none;font-size:12px;color:#f59e0b;margin-top:6px;padding:8px 12px;background:#1c1200;border-radius:8px;border:1px solid #78350f">
-            ⚠️ คุณกำลังบันทึกในนามพนักงานคนอื่น — ระบบจะบันทึก log ไว้
+          <!-- ล็อคให้แสดงเฉพาะชื่อตัวเอง -->
+          <div style="padding:12px 16px;border-radius:10px;background:#0b0f1a;border:1px solid var(--border);font-size:14px;color:var(--text);display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0" id="rpt-avatar">?</div>
+            <span id="rpt-emp-name" style="font-weight:600">กำลังโหลด...</span>
           </div>
+          <input type="hidden" id="rpt-emp"/>
         </div>
 
         <div id="rpt-form-body">
-        <div id="rpt-form-body" style="display:none">
         <div class="att-info-box" id="att-info-box"></div>
         <div class="form-group">
           <label class="form-label">งานที่ทำวันนี้ * (เลือกได้หลายข้อ)</label>
@@ -721,24 +720,49 @@ onAuthStateChanged(auth, user => {
 
 function matchCurrentEmployee() {
   if (!currentUser || !EMPLOYEES.length) return;
-  // จับคู่ Firebase email กับ email ที่เก็บใน EMPLOYEES
   currentEmployee = EMPLOYEES.find(e =>
     e.email && e.email.toLowerCase() === currentUser.email.toLowerCase()
   ) || null;
   updateUserChip();
-  // Auto-fill ชื่อพนักงานใน dropdown
-  if (currentEmployee) {
-    const ciEmp = document.getElementById("ci-emp");
-    const rptEmp = document.getElementById("rpt-emp");
-    if (ciEmp && !ciEmp.value) { ciEmp.value = currentEmployee.id; onCiEmpChange(); ciAuthVerified=true; updateCIDisplay(); }
-    if (rptEmp && !rptEmp.value) { rptEmp.value = currentEmployee.id; onRptEmpChange(); rptAuthVerified=true;
-      document.getElementById("rpt-form-body").style.display="block";
-      document.getElementById("rpt-auth-ok").className="auth-ok show";
-      document.getElementById("rpt-auth-box").className="auth-box";
-      document.getElementById("submit-btn").disabled=false;
-      updateAttInfo();
-    }
+  updateFormUserDisplay();
+}
+
+function updateFormUserDisplay() {
+  const ciName = document.getElementById("ci-emp-name");
+  const ciAvatar = document.getElementById("ci-avatar");
+  const rptName = document.getElementById("rpt-emp-name");
+  const rptAvatar = document.getElementById("rpt-avatar");
+
+  if (!currentEmployee) {
+    // Email นี้ไม่มีในรายชื่อพนักงาน
+    if (ciName) ciName.textContent = "ไม่พบชื่อในระบบ — ติดต่อ Admin";
+    if (rptName) rptName.textContent = "ไม่พบชื่อในระบบ — ติดต่อ Admin";
+    [ciAvatar, rptAvatar].forEach(el => { if(el) { el.textContent="?"; el.style.background="#374151"; } });
+    return;
   }
+
+  const emp = currentEmployee;
+
+  // CI section
+  const ciEmp = document.getElementById("ci-emp");
+  if (ciEmp) ciEmp.value = emp.id;
+  if (ciName) ciName.textContent = emp.name;
+  if (ciAvatar) ciAvatar.textContent = emp.avatar;
+
+  // RPT section
+  const rptEmp = document.getElementById("rpt-emp");
+  if (rptEmp) rptEmp.value = emp.id;
+  if (rptName) rptName.textContent = emp.name;
+  if (rptAvatar) rptAvatar.textContent = emp.avatar;
+
+  // Enable form
+  const formBody = document.getElementById("rpt-form-body");
+  const submitBtn = document.getElementById("submit-btn");
+  if (formBody) formBody.style.display = "block";
+  if (submitBtn) submitBtn.disabled = false;
+
+  updateCIDisplay();
+  updateAttInfo();
 }
 
 function updateUserChip() {
@@ -999,29 +1023,8 @@ function renderProgressList() {
 let ciAuthVerified = true;
 let rptAuthVerified = true;
 
-window.onCiEmpChange = function() {
-  const id = parseInt(document.getElementById("ci-emp").value);
-  const notMe = document.getElementById("ci-not-me");
-  if (currentEmployee && id && id !== currentEmployee.id) {
-    notMe.style.display = "block";
-  } else {
-    notMe.style.display = "none";
-  }
-  updateCIDisplay();
-};
-
-window.onRptEmpChange = function() {
-  const id = parseInt(document.getElementById("rpt-emp").value);
-  const notMe = document.getElementById("rpt-not-me");
-  if (currentEmployee && id && id !== currentEmployee.id) {
-    notMe.style.display = "block";
-  } else {
-    notMe.style.display = "none";
-  }
-  document.getElementById("rpt-form-body").style.display = id ? "block" : "none";
-  document.getElementById("submit-btn").disabled = !id;
-  updateAttInfo();
-};
+window.onCiEmpChange = function() { updateCIDisplay(); };
+window.onRptEmpChange = function() { updateAttInfo(); };
 
 // ─── CHECK IN/OUT ───
 const getNow=()=>new Date().toTimeString().slice(0,5);
@@ -1182,8 +1185,7 @@ window.submitReport = async function(){
   const alertEl=document.getElementById("success-alert");
   alertEl.style.display="block";
   setTimeout(()=>{alertEl.style.display="none";},2500);
-  // Reset form
-  document.getElementById("rpt-emp").value="";
+  // Reset form (keep employee as current user)
   document.getElementById("rpt-note").value="";
   document.getElementById("prog-slider").value=50;
   document.getElementById("prog-label").textContent="50%";
@@ -1191,9 +1193,6 @@ window.submitReport = async function(){
   renderFilePreviews();
   document.querySelectorAll(".tag").forEach(t=>t.classList.remove("active"));
   selectStatus("ปกติ");
-  document.getElementById("rpt-form-body").style.display="none";
-  document.getElementById("submit-btn").disabled=true;
-  document.getElementById("rpt-not-me").style.display="none";
   updateAttInfo();
 };
 
@@ -1250,18 +1249,9 @@ function makeAvatar(name) {
 }
 
 function rebuildDropdowns() {
-  ["ci-emp","rpt-emp"].forEach(id=>{
-    const sel=document.getElementById(id);
-    if(!sel) return;
-    const cur=sel.value;
-    sel.innerHTML=`<option value="">-- เลือกพนักงาน --</option>`;
-    EMPLOYEES.forEach(e=>{
-      const o=document.createElement("option");
-      o.value=e.id; o.textContent=e.name;
-      sel.appendChild(o);
-    });
-    sel.value=cur;
-  });
+  // dropdowns ใน form ถูกแทนที่ด้วย hidden input + display div แล้ว
+  // ยังคงใช้สำหรับ dept filter chips เท่านั้น
+  updateFormUserDisplay();
 }
 
 // ── Admin login ──
