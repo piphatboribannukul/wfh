@@ -413,7 +413,7 @@
 <!-- SYNC BAR -->
 <div class="sync-bar">
   <div class="sync-dot" id="sync-dot"></div>
-  <span id="sync-status">กำลังเชื่อมต่อ...</span>
+  <span id="sync-status">เชื่อมต่อแล้ว 🔄</span>
   <button onclick="openEmpModal()" style="margin-left:auto;padding:4px 12px;border-radius:6px;border:1px solid var(--border);cursor:pointer;background:var(--surface2);color:var(--muted);font-family:'Sarabun',sans-serif;font-size:12px;white-space:nowrap;transition:all 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">👤 จัดการพนักงาน</button>
 </div>
 
@@ -482,9 +482,9 @@
   </div>
 
   <!-- EMPLOYEE HISTORY PANEL (slide-in) -->
-  <div id="emp-history-panel" style="display:none;position:fixed;inset:0;z-index:500;display:flex;align-items:stretch" onclick="if(event.target===this)closeEmpHistory()">
-    <div style="flex:1;background:rgba(0,0,0,0.5)" onclick="closeEmpHistory()"></div>
-    <div style="width:min(480px,100vw);background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden">
+  <div id="emp-history-panel" style="display:none;position:fixed;inset:0;z-index:500" onclick="if(event.target===this)closeEmpHistory()">
+    <div style="position:absolute;inset:0;background:rgba(0,0,0,0.5)" onclick="closeEmpHistory()"></div>
+    <div style="position:absolute;top:0;right:0;bottom:0;width:min(480px,100vw);background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden">
       <div style="padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
         <div>
           <div style="font-size:15px;font-weight:800" id="emp-hist-name">—</div>
@@ -853,7 +853,11 @@ onAuthStateChanged(auth, user => {
     document.getElementById("login-screen").style.display = "none";
     document.getElementById("login-btn").disabled = false;
     document.getElementById("login-spinner").style.display = "none";
-    document.getElementById("loading").classList.add("hidden"); // ซ่อน loading ทันที
+    // ซ่อน loading ทันที ไม่รอ Firebase
+    const loadingEl = document.getElementById("loading");
+    loadingEl.classList.add("hidden");
+    // fallback: ซ่อนแน่ๆ หลัง 2 วินาที
+    setTimeout(() => loadingEl.classList.add("hidden"), 2000);
     if (!fbListening) { fbListening = true; listenFirebase(); }
     else matchCurrentEmployee();
   } else {
