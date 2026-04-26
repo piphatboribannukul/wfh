@@ -450,6 +450,22 @@
             <div style="font-size:13px;font-weight:600;color:var(--muted)" id="ci-status">ยังไม่เข้างาน</div>
           </div>
         </div>
+
+        <!-- elapsed timer bar -->
+        <div id="elapsed-wrap" style="display:none;margin:12px 0 4px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <span style="font-size:12px;color:var(--muted)">⏱ เวลาทำงาน</span>
+            <span id="elapsed-label" style="font-size:13px;font-weight:700;color:#a78bfa;font-family:'IBM Plex Mono',monospace">00:00:00</span>
+            <span style="font-size:11px;color:var(--muted)">เป้าหมาย 8 ชม.</span>
+          </div>
+          <div style="background:#0b0f1a;border-radius:6px;height:8px;overflow:hidden">
+            <div id="elapsed-bar" style="height:100%;border-radius:6px;width:0%;background:linear-gradient(90deg,#6366f1,#10b981);transition:width 1s linear"></div>
+          </div>
+          <div id="checkout-lock-msg" style="display:none;margin-top:8px;font-size:11px;color:#f59e0b;text-align:center;padding:6px 10px;background:#1c1200;border-radius:6px;border:1px solid #78350f">
+            🔒 Check Out ได้หลังครบ 8 ชม. (เหลือ <span id="remaining-label">--:--</span>)
+          </div>
+        </div>
+
         <div class="feedback" id="ci-feedback"></div>
         <div class="checkin-buttons">
           <button class="ci-btn" id="btn-checkin" onclick="doCheckIn()" disabled style="background:linear-gradient(135deg,#059669,#10b981);color:#fff;box-shadow:0 6px 24px rgba(16,185,129,0.4)">
@@ -478,8 +494,16 @@
         <div id="rpt-form-body">
         <div class="att-info-box" id="att-info-box"></div>
         <div class="form-group">
-          <label class="form-label">งานที่ทำวันนี้ * (เลือกได้หลายข้อ)</label>
+          <label class="form-label">งานที่ทำวันนี้ * (เลือกได้หลายข้อ หรือพิมพ์เพิ่มเองได้)</label>
           <div class="tags" id="task-tags"></div>
+          <!-- custom task input -->
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <input id="custom-task-input" class="form-select" placeholder="พิมพ์งานที่ไม่มีในรายการ..." style="flex:1;padding:9px 14px;font-size:13px"
+              onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomTask()}"
+            />
+            <button onclick="addCustomTask()" style="padding:9px 16px;border-radius:8px;border:none;cursor:pointer;background:var(--accent);color:#fff;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:700;white-space:nowrap;transition:all 0.2s">+ เพิ่ม</button>
+          </div>
+          <div id="custom-tags" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
         </div>
         <div class="form-group">
           <label class="form-label">ความคืบหน้า: <span id="prog-label" style="color:#a78bfa;font-weight:700">50%</span></label>
@@ -696,20 +720,19 @@ window.doResetPassword = async function() {
 };
 
 // ── Auth state listener ──
+let fbListening = false;
 onAuthStateChanged(auth, user => {
   if (user) {
-    // Login สำเร็จ
     currentUser = user;
     document.getElementById("login-screen").style.display = "none";
     document.getElementById("login-btn").disabled = false;
     document.getElementById("login-spinner").style.display = "none";
-    // ต้องรอ EMPLOYEES โหลดก่อน ถึงจะหา employee ได้
-    matchCurrentEmployee();
-    listenFirebase();
+    if (!fbListening) { fbListening = true; listenFirebase(); }
+    else matchCurrentEmployee();
   } else {
-    // Logout
     currentUser = null;
     currentEmployee = null;
+    fbListening = false;
     document.getElementById("login-screen").style.display = "flex";
     document.getElementById("login-email").value = "";
     document.getElementById("login-pass").value = "";
@@ -912,7 +935,9 @@ window.showTab = function(name) {
 
 // ─── INIT UI ───
 function initUI() {
-  // Employee dropdowns — จะถูก populate โดย rebuildDropdowns() หลัง Firebase โหลด EMPLOYEES
+  // แสดง rpt-form-body ทันที (submit ยังปิดอยู่จนกว่าจะ match employee)
+  const formBody = document.getElementById("rpt-form-body");
+  if (formBody) formBody.style.display = "block";
 
   // Task tags
   TASKS.forEach(t=>{
@@ -1026,6 +1051,85 @@ let rptAuthVerified = true;
 window.onCiEmpChange = function() { updateCIDisplay(); };
 window.onRptEmpChange = function() { updateAttInfo(); };
 
+// ─── ELAPSED TIMER ───
+let elapsedTimer = null;
+const REQUIRED_HOURS = 8;
+const REQUIRED_MS = REQUIRED_HOURS * 60 * 60 * 1000;
+
+function startElapsedTimer(checkInTime) {
+  stopElapsedTimer();
+  const [h, m] = checkInTime.split(":").map(Number);
+  const now = new Date();
+  const checkInMs = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0).getTime();
+
+  function tick() {
+    const elapsed = Date.now() - checkInMs;
+    const pct = Math.min(100, (elapsed / REQUIRED_MS) * 100);
+    const hrs = Math.floor(elapsed / 3600000);
+    const mins = Math.floor((elapsed % 3600000) / 60000);
+    const secs = Math.floor((elapsed % 60000) / 1000);
+    const pad = n => String(n).padStart(2, "0");
+
+    document.getElementById("elapsed-label").textContent = `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+    document.getElementById("elapsed-bar").style.width = pct + "%";
+
+    const lockMsg = document.getElementById("checkout-lock-msg");
+    const btnCO = document.getElementById("btn-checkout");
+    if (elapsed < REQUIRED_MS) {
+      const remaining = REQUIRED_MS - elapsed;
+      const rh = Math.floor(remaining / 3600000);
+      const rm = Math.floor((remaining % 3600000) / 60000);
+      const rs = Math.floor((remaining % 60000) / 1000);
+      document.getElementById("remaining-label").textContent = `${pad(rh)}:${pad(rm)}:${pad(rs)}`;
+      lockMsg.style.display = "block";
+      btnCO.disabled = true;
+    } else {
+      lockMsg.style.display = "none";
+      btnCO.disabled = false;
+    }
+  }
+  tick();
+  elapsedTimer = setInterval(tick, 1000);
+  document.getElementById("elapsed-wrap").style.display = "block";
+}
+
+function stopElapsedTimer() {
+  if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+  const wrap = document.getElementById("elapsed-wrap");
+  if (wrap) wrap.style.display = "none";
+}
+
+// ─── CUSTOM TASK INPUT ───
+let customTasks = []; // tasks พิมพ์เอง
+
+window.addCustomTask = function() {
+  const input = document.getElementById("custom-task-input");
+  const val = input.value.trim();
+  if (!val || customTasks.includes(val) || selectedTasks.includes(val)) {
+    input.value = ""; return;
+  }
+  customTasks.push(val);
+  selectedTasks.push(val);
+  renderCustomTags();
+  input.value = "";
+};
+
+function removeCustomTask(task) {
+  customTasks = customTasks.filter(t => t !== task);
+  selectedTasks = selectedTasks.filter(t => t !== task);
+  renderCustomTags();
+}
+
+function renderCustomTags() {
+  const el = document.getElementById("custom-tags");
+  if (!el) return;
+  el.innerHTML = customTasks.map(t => `
+    <span style="display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:20px;background:#312e81;color:#c7d2fe;font-size:12px;border:1px solid #4338ca">
+      ✏️ ${t}
+      <button onclick="removeCustomTask('${t.replace(/'/g,"\\'")}') " style="background:none;border:none;cursor:pointer;color:#818cf8;font-size:13px;padding:0;line-height:1">✕</button>
+    </span>`).join("");
+}
+
 // ─── CHECK IN/OUT ───
 const getNow=()=>new Date().toTimeString().slice(0,5);
 
@@ -1037,12 +1141,28 @@ window.updateCIDisplay = function() {
   const stD=document.getElementById("ci-status");
   const btnCI=document.getElementById("btn-checkin");
   const btnCO=document.getElementById("btn-checkout");
-  if(!id){ciD.textContent="--:--";ciD.style.color="#2d3f5a";coD.textContent="--:--";coD.style.color="#2d3f5a";stD.textContent="ยังไม่เข้างาน";stD.style.color="var(--muted)";btnCI.disabled=true;btnCO.disabled=true;return;}
+  if(!id){
+    ciD.textContent="--:--"; ciD.style.color="#2d3f5a";
+    coD.textContent="--:--"; coD.style.color="#2d3f5a";
+    stD.textContent="ยังไม่เข้างาน"; stD.style.color="var(--muted)";
+    btnCI.disabled=true; btnCO.disabled=true;
+    stopElapsedTimer(); return;
+  }
   ciD.textContent=att?.checkIn||"--:--"; ciD.style.color=att?.checkIn?"#10b981":"#2d3f5a";
   coD.textContent=att?.checkOut||"--:--"; coD.style.color=att?.checkOut?"#3b82f6":"#2d3f5a";
-  if(!att){stD.textContent="ยังไม่เข้างาน";stD.style.color="var(--muted)";btnCI.disabled=false;btnCO.disabled=true;}
-  else if(!att.checkOut){stD.textContent="🟢 กำลังทำงาน";stD.style.color="#10b981";btnCI.disabled=true;btnCO.disabled=false;}
-  else{stD.textContent="🔵 เลิกงานแล้ว";stD.style.color="#3b82f6";btnCI.disabled=true;btnCO.disabled=true;}
+  if(!att){
+    stD.textContent="ยังไม่เข้างาน"; stD.style.color="var(--muted)";
+    btnCI.disabled=false; btnCO.disabled=true;
+    stopElapsedTimer();
+  } else if(!att.checkOut){
+    stD.textContent="🟢 กำลังทำงาน"; stD.style.color="#10b981";
+    btnCI.disabled=true;
+    startElapsedTimer(att.checkIn); // timer จัดการปุ่ม checkout เอง
+  } else {
+    stD.textContent="🔵 เลิกงานแล้ว"; stD.style.color="#3b82f6";
+    btnCI.disabled=true; btnCO.disabled=true;
+    stopElapsedTimer();
+  }
 };
 
 function showFeedback(msg,type){
@@ -1190,6 +1310,8 @@ window.submitReport = async function(){
   document.getElementById("prog-slider").value=50;
   document.getElementById("prog-label").textContent="50%";
   selectedTasks=[]; attachedFiles=[];
+  customTasks=[];
+  renderCustomTags();
   renderFilePreviews();
   document.querySelectorAll(".tag").forEach(t=>t.classList.remove("active"));
   selectStatus("ปกติ");
@@ -1576,7 +1698,7 @@ window.toggleSummaryCard = function(i) {
 
 // ─── START ───
 initUI();
-listenFirebase();
+// listenFirebase() จะถูกเรียกโดย onAuthStateChanged หลัง login สำเร็จ
 
 </script>
 </body>
