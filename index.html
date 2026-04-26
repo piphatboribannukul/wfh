@@ -285,6 +285,29 @@
     <button class="login-btn" id="login-btn" onclick="doLogin()">เข้าสู่ระบบ</button>
     <div class="login-spinner" id="login-spinner">⏳ กำลังเข้าสู่ระบบ...</div>
     <div class="login-err" id="login-err"></div>
+
+    <!-- Forgot password -->
+    <div style="text-align:center;margin-top:16px">
+      <button onclick="toggleForgot()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;font-family:'Sarabun',sans-serif;text-decoration:underline;text-underline-offset:3px;">
+        ลืมรหัสผ่าน?
+      </button>
+    </div>
+
+    <!-- Forgot password panel -->
+    <div id="forgot-panel" style="display:none;margin-top:16px;background:#0b0f1a;border:1px solid var(--border);border-radius:12px;padding:16px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:4px">รีเซ็ตรหัสผ่าน</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">ระบบจะส่ง link รีเซ็ตรหัสผ่านไปที่ Email ของคุณ</div>
+      <input class="login-input" id="reset-email" type="email" placeholder="email@wqa.go.th" style="margin-bottom:10px;font-size:14px"/>
+      <button onclick="doResetPassword()" id="reset-btn"
+        style="width:100%;padding:11px;border-radius:9px;border:none;cursor:pointer;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:'Sarabun',sans-serif;font-size:14px;font-weight:600;transition:all 0.2s;"
+        onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        ส่ง Link รีเซ็ตรหัสผ่าน 📧
+      </button>
+      <div id="reset-ok" style="display:none;margin-top:10px;background:#064e3b;border:1px solid var(--green);border-radius:8px;padding:10px 12px;font-size:12px;color:#6ee7b7">
+        ✅ ส่ง Email แล้ว! กรุณาตรวจสอบกล่องจดหมาย (และโฟลเดอร์ Spam)
+      </div>
+      <div id="reset-err" style="display:none;margin-top:10px;background:#450a0a;border:1px solid #ef4444;border-radius:8px;padding:10px 12px;font-size:12px;color:#fca5a5"></div>
+    </div>
   </div>
 </div>
 
@@ -569,7 +592,8 @@ import {
   signOut,
   onAuthStateChanged,
   browserLocalPersistence,
-  setPersistence
+  setPersistence,
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // ── Firebase Config ──
@@ -625,6 +649,51 @@ window.doLogin = async function() {
 window.doLogout = async function() {
   if (!confirm("ออกจากระบบ?")) return;
   await signOut(auth);
+};
+
+// ── Forgot password ──
+window.toggleForgot = function() {
+  const panel = document.getElementById("forgot-panel");
+  const isOpen = panel.style.display !== "none";
+  panel.style.display = isOpen ? "none" : "block";
+  if (!isOpen) {
+    // pre-fill email ถ้ากรอกไว้แล้ว
+    const email = document.getElementById("login-email").value.trim();
+    if (email) document.getElementById("reset-email").value = email;
+    document.getElementById("reset-ok").style.display = "none";
+    document.getElementById("reset-err").style.display = "none";
+  }
+};
+
+window.doResetPassword = async function() {
+  const email = document.getElementById("reset-email").value.trim();
+  const okEl  = document.getElementById("reset-ok");
+  const errEl = document.getElementById("reset-err");
+  const btn   = document.getElementById("reset-btn");
+  okEl.style.display = "none";
+  errEl.style.display = "none";
+  if (!email) { errEl.textContent = "กรุณากรอก Email"; errEl.style.display="block"; return; }
+  btn.disabled = true;
+  btn.textContent = "⏳ กำลังส่ง...";
+  try {
+    await sendPasswordResetEmail(auth, email);
+    okEl.style.display = "block";
+    btn.textContent = "✅ ส่งแล้ว";
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = "ส่ง Link รีเซ็ตรหัสผ่าน 📧";
+    }, 30000); // 30 วินาทีถึงส่งได้ใหม่
+  } catch(e) {
+    const msgs = {
+      "auth/user-not-found":  "ไม่พบ Email นี้ในระบบ",
+      "auth/invalid-email":   "รูปแบบ Email ไม่ถูกต้อง",
+      "auth/too-many-requests":"ส่งบ่อยเกินไป กรุณารอสักครู่",
+    };
+    errEl.textContent = msgs[e.code] || `เกิดข้อผิดพลาด (${e.code})`;
+    errEl.style.display = "block";
+    btn.disabled = false;
+    btn.textContent = "ส่ง Link รีเซ็ตรหัสผ่าน 📧";
+  }
 };
 
 // ── Auth state listener ──
