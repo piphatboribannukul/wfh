@@ -580,6 +580,20 @@
           <input type="hidden" id="rpt-emp"/>
         </div>
 
+        <!-- ลิงค์ Extranet MWA -->
+        <a href="https://extranet.mwa.co.th/prwfh/,DanaInfo=.a184C5.F8EBJEI+"
+           target="_blank" rel="noopener"
+           style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:12px;background:linear-gradient(135deg,#0f2d5a,#1a4080);border:1px solid #2a5ab0;text-decoration:none;margin-bottom:16px;transition:all 0.2s;color:#fff"
+           onmouseover="this.style.background='linear-gradient(135deg,#1a4080,#2563eb)'"
+           onmouseout="this.style.background='linear-gradient(135deg,#0f2d5a,#1a4080)'">
+          <div style="width:38px;height:38px;border-radius:9px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🏢</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700;margin-bottom:2px">บันทึกรายละเอียดการปฏิบัติงาน ณ ที่พักอาศัย (Work From Home)</div>
+            <div style="font-size:11px;color:#93c5fd">Extranet MWA → คลิกเพื่อเปิด</div>
+          </div>
+          <div style="font-size:18px;flex-shrink:0">↗</div>
+        </a>
+
         <div id="rpt-form-body">
         <div class="att-info-box" id="att-info-box"></div>
         <div class="form-group">
@@ -1018,11 +1032,11 @@ function listenFirebase() {
   onValue(ref(db, `reports/${today}`), snap => {
     if (snap.exists()) {
       const raw = snap.val();
-      reports = Object.entries(raw).map(([fbKey, v]) => ({
+      reports = Object.entries(raw).map(([key, v]) => ({
         ...v,
-        fbKey,
-        employee: EMPLOYEES.find(e => e.id === v.employeeId) || { name:"?", dept:"?", avatar:"?" },
-      })).sort((a,b) => b.id - a.id);
+        fbKey: key,
+        employee: EMPLOYEES.find(e => String(e.id) === String(v.employeeId)) || { name:"?", dept:"?", avatar:"?" },
+      })).sort((a,b) => (b.updatedAt||b.timestamp||"") > (a.updatedAt||a.timestamp||"") ? 1 : -1);
     } else {
       reports = [];
     }
@@ -1043,11 +1057,15 @@ async function saveAttendance(empId, data) {
   await set(ref(db, `attendance/${today}/${empId}`), data);
 }
 
-// ─── SAVE REPORT ───
+// ─── SAVE REPORT — 1 คน 1 รายการต่อวัน (บันทึกใหม่แทนอันเก่า) ───
 async function saveReport(reportData) {
   const today = todayKey();
   const { employee, fbKey, ...toSave } = reportData;
-  await push(ref(db, `reports/${today}`), toSave);
+  // ใช้ employeeId เป็น key → บันทึกซ้ำ = อัปเดตอันเดิม
+  await set(ref(db, `reports/${today}/${toSave.employeeId}`), {
+    ...toSave,
+    updatedAt: new Date().toISOString(),
+  });
 }
 
 // ─── CLOCK ───
@@ -1540,6 +1558,7 @@ window.submitReport = async function(){
   };
   await saveReport(newReport);
   const alertEl=document.getElementById("success-alert");
+  alertEl.textContent = "✅ บันทึก/อัปเดตรายงานเรียบร้อยแล้ว!";
   alertEl.style.display="block";
   setTimeout(()=>{alertEl.style.display="none";},2500);
   // Reset form
@@ -1768,9 +1787,10 @@ function loadEmpHistoryForDate(date) {
       content.innerHTML = `<div style="text-align:center;color:var(--muted);padding:40px;font-size:13px">📭 ไม่มีรายงานในวันนี้<br/><span style="font-size:11px">${thDate}</span></div>`;
       return;
     }
-    // Filter เฉพาะรายงานของพนักงานคนนี้
+    // Filter เฉพาะรายงานของพนักงานคนนี้ (key อาจเป็น employeeId หรือ pushId)
     const all = Object.values(snap.val());
-    const myReports = all.filter(r => r.employeeId === empHistCurrentEmp.id).sort((a,b) => b.id - a.id);
+    const myReports = all.filter(r => String(r.employeeId) === String(empHistCurrentEmp.id))
+      .sort((a,b) => (b.updatedAt||b.timestamp||"") > (a.updatedAt||a.timestamp||"") ? 1 : -1);
 
     // โหลด attendance ของวันนั้นด้วย
     onValue(ref(db, `attendance/${key}/${empHistCurrentEmp.id}`), attSnap => {
@@ -1901,10 +1921,10 @@ function loadSummaryForDate(date) {
   onValue(ref(db, `reports/${key}`), snap => {
     if (snap.exists()) {
       const raw = snap.val();
-      rpts = Object.entries(raw).map(([fbKey, v]) => ({
-        ...v, fbKey,
-        employee: EMPLOYEES.find(e => e.id === v.employeeId) || { name:"?", dept:"?", avatar:"?" },
-      })).sort((a,b) => b.id - a.id);
+      rpts = Object.entries(raw).map(([k, v]) => ({
+        ...v, fbKey: k,
+        employee: EMPLOYEES.find(e => String(e.id) === String(v.employeeId)) || { name:"?", dept:"?", avatar:"?" },
+      })).sort((a,b) => (b.updatedAt||b.timestamp||"") > (a.updatedAt||a.timestamp||"") ? 1 : -1);
     } else {
       rpts = [];
     }
