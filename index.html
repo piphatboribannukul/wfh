@@ -374,14 +374,22 @@
       </div>
       <div id="reset-err" style="display:none;margin-top:10px;background:#450a0a;border:1px solid #ef4444;border-radius:8px;padding:10px 12px;font-size:12px;color:#fca5a5"></div>
     </div>
+
+    <!-- Guest login -->
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);text-align:center">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px">หรือเข้าในฐานะ</div>
+      <button onclick="doGuestLogin()"
+        style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--border);cursor:pointer;background:var(--surface2);color:var(--muted);font-family:'Sarabun',sans-serif;font-size:14px;font-weight:600;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px"
+        onmouseover="this.style.borderColor='#64748b';this.style.color='var(--text)'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+        <span style="font-size:16px">👁</span> เข้าแบบ Guest (ดูข้อมูลได้ ไม่สามารถบันทึกได้)
+      </button>
+    </div>
   </div>
 </div>
 
 <!-- LOADING -->
 <div class="loading-overlay" id="loading">
-  <div class="loading-spinner"></div>
-  <div class="loading-text">กำลังเชื่อมต่อ Firebase...</div>
-</div>
   <div class="loading-spinner"></div>
   <div class="loading-text">กำลังเชื่อมต่อ Firebase...</div>
 </div>
@@ -776,8 +784,23 @@ const db  = getDatabase(app);
 const auth = getAuth(app);
 
 // ── Current logged-in user ──
-let currentUser = null;       // Firebase user object
-let currentEmployee = null;   // matched EMPLOYEE record
+let currentUser = null;
+let currentEmployee = null;
+let isGuest = false; // Guest mode flag
+
+// ─── GUEST LOGIN ───
+window.doGuestLogin = function() {
+  isGuest = true;
+  currentUser = null;
+  currentEmployee = null;
+  document.getElementById("login-screen").style.display = "none";
+  document.getElementById("loading").classList.add("hidden");
+  setSyncStatus("connected", "โหมด Guest · ดูข้อมูลได้เท่านั้น 👁");
+  updateUserChip();
+  if (!fbListening) { fbListening = true; listenFirebase(); }
+  // ซ่อนเมนูบันทึกและล็อคปุ่ม checkin สำหรับ Guest
+  applyGuestRestrictions();
+};
 
 // ─── LOGIN / LOGOUT ───
 window.doLogin = async function() {
@@ -811,7 +834,12 @@ window.doLogin = async function() {
 
 window.doLogout = async function() {
   if (!confirm("ออกจากระบบ?")) return;
-  await signOut(auth);
+  isGuest = false;
+  if (currentUser) await signOut(auth);
+  else {
+    // Guest logout — reload หน้า
+    location.reload();
+  }
 };
 
 // ── Forgot password ──
@@ -863,6 +891,7 @@ window.doResetPassword = async function() {
 let fbListening = false;
 onAuthStateChanged(auth, user => {
   if (user) {
+    isGuest = false;
     currentUser = user;
     document.getElementById("login-screen").style.display = "none";
     document.getElementById("login-btn").disabled = false;
@@ -934,11 +963,34 @@ function updateFormUserDisplay() {
   updateAttInfo();
 }
 
+function applyGuestRestrictions() {
+  // ซ่อนเมนู "บันทึก" บน desktop nav
+  document.querySelectorAll(".nav-btn").forEach(btn => {
+    if (btn.textContent.trim() === "บันทึก") btn.style.display = "none";
+  });
+  // ซ่อนปุ่ม bottom nav บันทึก
+  const bnavForm = document.getElementById("bnav-form");
+  if (bnavForm) bnavForm.style.display = "none";
+  // ซ่อนปุ่มจัดการพนักงาน
+  document.querySelectorAll("button").forEach(btn => {
+    if (btn.textContent.includes("จัดการพนักงาน")) btn.style.display = "none";
+  });
+  // ไปหน้า Dashboard แทน
+  showTab("dashboard");
+}
+
 function updateUserChip() {
   const chip = document.getElementById("user-chip");
   const nameEl = document.getElementById("user-name");
   const avatarEl = document.getElementById("user-avatar");
-  if (!currentUser) { chip.style.display="none"; return; }
+  if (!chip) return;
+  if (isGuest) {
+    chip.style.display = "flex";
+    nameEl.textContent = "Guest";
+    avatarEl.textContent = "👁";
+    return;
+  }
+  if (!currentUser) { chip.style.display = "none"; return; }
   chip.style.display = "flex";
   const emp = currentEmployee;
   nameEl.textContent = emp ? emp.name.split(" ")[0] : currentUser.email;
@@ -1370,6 +1422,7 @@ function renderCustomTags() {
 const getNow=()=>new Date().toTimeString().slice(0,5);
 
 window.updateCIDisplay = function() {
+  if (isGuest) return; // Guest ไม่สามารถ checkin ได้
   const id=parseInt(document.getElementById("ci-emp").value);
   const att=attendance[id];
   const ciD=document.getElementById("ci-display");
