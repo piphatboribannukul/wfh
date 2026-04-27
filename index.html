@@ -516,6 +516,15 @@
   <div class="tab active" id="tab-form">
     <div style="max-width:620px;margin:0 auto">
 
+      <!-- Guest notice -->
+      <div id="guest-notice" style="display:none;background:#1c1200;border:1px solid #78350f;border-radius:12px;padding:12px 16px;margin-bottom:16px;display:none;align-items:center;gap:10px">
+        <span style="font-size:20px">👁</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#f59e0b">โหมด Guest</div>
+          <div style="font-size:12px;color:#d97706">ดูข้อมูลได้เท่านั้น — ไม่สามารถ Check In/Out หรือบันทึกรายงานได้</div>
+        </div>
+      </div>
+
       <!-- CHECK IN/OUT -->
       <div class="card" style="margin-bottom:20px">
         <div class="card-title">⏱ บันทึกเวลาเข้า-ออกงาน</div>
@@ -964,18 +973,22 @@ function updateFormUserDisplay() {
 }
 
 function applyGuestRestrictions() {
-  // ซ่อนเมนู "บันทึก" บน desktop nav
-  document.querySelectorAll(".nav-btn").forEach(btn => {
-    if (btn.textContent.trim() === "บันทึก") btn.style.display = "none";
-  });
-  // ซ่อนปุ่ม bottom nav บันทึก
-  const bnavForm = document.getElementById("bnav-form");
-  if (bnavForm) bnavForm.style.display = "none";
-  // ซ่อนปุ่มจัดการพนักงาน
+  // ซ่อนปุ่มจัดการพนักงานเท่านั้น
   document.querySelectorAll("button").forEach(btn => {
     if (btn.textContent.includes("จัดการพนักงาน")) btn.style.display = "none";
   });
-  // ไปหน้า Dashboard แทน
+  // ปิดปุ่ม checkin/checkout
+  const btnCI = document.getElementById("btn-checkin");
+  const btnCO = document.getElementById("btn-checkout");
+  if (btnCI) { btnCI.disabled = true; btnCI.title = "Guest ไม่สามารถ Check In ได้"; }
+  if (btnCO) { btnCO.disabled = true; btnCO.title = "Guest ไม่สามารถ Check Out ได้"; }
+  // ปิดปุ่มบันทึกรายงาน
+  const submitBtn = document.getElementById("submit-btn");
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "🚫 Guest ไม่สามารถบันทึกได้"; }
+  // แสดง guest notice ในหน้าบันทึก
+  const guestNotice = document.getElementById("guest-notice");
+  if (guestNotice) guestNotice.style.display = "block";
+  // ไปหน้าบันทึกได้ แต่เริ่มที่ Dashboard
   showTab("dashboard");
 }
 
